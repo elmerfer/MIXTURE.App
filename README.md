@@ -1,10 +1,12 @@
 # MIXTURE
 
-A noise constrained Recursive Feature Extraction algorithm for robust deconvolution of cell-types mixture from molecular signatures
+A v-SVR based noise constrained Recursive Feature Extraction algorithm for robust deconvolution of cell-types mixture from molecular signatures
 
 Since the significant impact of immunotherapy in cancer, the estimation of the immune cell-type proportions present in a tumor becomes crucial. Currently, the deconvolution of the cell mixture content of a tumor is carried out by different analytic tools, yet the accuracy of inferred cell type proportions has room for improvement. We improve tumor immune environment characterization developing MIXTURE, an analytical method based on a noise constrained recursive variable selection for a support vector regression
 
 ## Getting Started
+
+* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
@@ -23,14 +25,18 @@ The current "functional like" version of the software requires the following lib
 * [plyr](https://cran.r-project.org/web/packages/plyr/index.html)
 * [abind](https://cran.r-project.org/web/packages/abind/index.html)
 * [openxlsx](https://cran.r-project.org/web/packages/openxlsx/index.html)
+* [strinr](https://cran.r-project.org/web/packages/stringr/)
 
 ### Installing
+* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
 Download the file MIXTURE.R and install it in your favorite directory (i.e ../myFavorite/MIXTURE.R)
 Download the file LM22.RData and install it in the same directory (i.e ../myFavorite/LM22.RData) [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
 
 
 ## Running MIXTURE
+
+* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
 This example tends to estimate the same pure cell-types from LM22 signature matrix from [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
 ```
