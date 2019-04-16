@@ -8,12 +8,12 @@
 # source('~/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Current/MIXTURE/MIXTURE.R')
 ##Load signature matrix
 library(openxlsx)
-load("/home/elmer/MIXTURE.App-master/Data/LM22.RData")
+load("/Data/LM22.RData")
 
-source("/home/elmer/MIXTURE.App-master/Utils/MIXTURE.DEBUG_V0.1.R")
+source("/Utils/MIXTURE.DEBUG_V0.1.R")
 
 ##Choose you sample file
-sgm <- read.xlsx("/home/elmer/MIXTURE.App-master/Data/BRCA.subsample.xlsx")
+# sgm <- read.xlsx("/Data/BRCA.subsample.xlsx")
 
 rownames(sgm ) <- sgm[,1]
 sgm <- sgm[,-1]

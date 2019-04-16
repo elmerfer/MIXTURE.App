@@ -14,10 +14,10 @@ library(survminer)
 library(parallel)
 library(openxlsx)
 
-source('~/Dropbox/IDEAS/cibersort/MIXTURE/Utils/MIXTURE.DEBUG_V0.1.R')
+source('/Utils/MIXTURE.DEBUG_V0.1.R')
 ##change the directory to your own directory!!!
 #the BRCA RNAseq data can be downloaded from https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0
-brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
+# brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
 TNBC <- apply(brca$targets[,c("er","pgr","her2")],1, FUN = function(x) all(x == "negative"))
 brca$targets$TNBC <- TNBC ##defining Triple Negative BRCA
 
@@ -72,7 +72,7 @@ ncores2use <- 10L
  brca.dt.n <- dtangle(Y =  Y.dt , reference = R.dt)
  head(brca.dt.n$estimates[,1:10])
 # 
-brca.ciber.web <- ReadCibersortWebResults("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/CIBres/BRCA_CIBERSORT.csv", type = "csv")
+brca.ciber.web <- ReadCibersortWebResults("Data/BRCA_CIBERSORT.csv", type = "csv")
 
 #ABIS
 brca.abis <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture =  rlm.abis, useCores = ncores2use, verbose  =  TRUE,
@@ -167,23 +167,23 @@ gs <- lapply( c("CIBERSORT","MIXTURE"), function(i){
   return(gs)
   #print(gs)
 })
-setEPS()
-postscript(file = "BRCA_Full_M1_Surv.eps")
-arrange_ggsurvplots(gs, print = TRUE,
-                    ncol = 2, nrow = 1, risk.table.height = 0.4)
-dev.off()
-
-
-pdf(file = paste("Survival_BRCA_",acronim,cellt,".pdf",sep=""), width = 14, paper = "a4r")
-arrange_ggsurvplots(gs, print = TRUE,
-                    ncol = 2, nrow = 1, risk.table.height = 0.4)
-dev.off()
-
-jpeg(file = paste("Survival_BRCA_",acronim,cellt,".jpg",sep=""), width = 600)
-arrange_ggsurvplots(gs, print = TRUE,
-                    ncol = 2, nrow = 1, risk.table.height = 0.4)
-dev.off()
-
+# setEPS()
+# postscript(file = "BRCA_Full_M1_Surv.eps")
+# arrange_ggsurvplots(gs, print = TRUE,
+#                     ncol = 2, nrow = 1, risk.table.height = 0.4)
+# dev.off()
+# 
+# 
+# pdf(file = paste("Survival_BRCA_",acronim,cellt,".pdf",sep=""), width = 14, paper = "a4r")
+# arrange_ggsurvplots(gs, print = TRUE,
+#                     ncol = 2, nrow = 1, risk.table.height = 0.4)
+# dev.off()
+# 
+# jpeg(file = paste("Survival_BRCA_",acronim,cellt,".jpg",sep=""), width = 600)
+# arrange_ggsurvplots(gs, print = TRUE,
+#                     ncol = 2, nrow = 1, risk.table.height = 0.4)
+# dev.off()
+# 
 
 
 round(100*cbind(CIBERSORT=apply(brca.ciber.web,2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n),2,function(x) sum(x>0)))/nrow(brca.ciber.web),2)
@@ -399,4 +399,4 @@ wilcox.test(CT~Clasif, subset(df.m2, Method == "ABBAS"))
 
 
 
-saveRDS(list(brca.cib, brca.mix2,brca.abbas), "MIXTURE_ABBAS_Results.rds")
+# saveRDS(list(brca.cib, brca.mix2,brca.abbas), "MIXTURE_ABBAS_Results.rds")

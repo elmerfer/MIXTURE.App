@@ -18,7 +18,7 @@ library(dtangle)
 ##Load LM22 Signature
 ## Change this path directory to the one where you download the code
 ##i.e .../.../my_directory/LM22.RData
-load("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Current/LM22.RData")
+load("Data/LM22.RData")
 
 ##Utils
 TestBetas <- function(mat, b.list){
@@ -122,8 +122,8 @@ GetExtraBetas <- function(mat, b.list){
 ##RUNS SIMULATED SCENARIOS ----
 
 ##Scenario S1.1 - Prediction of Lm22)----
-source('~/Dropbox/IDEAS/cibersort/MIXTURE/Utils/MIXTURE.DEBUG_V0.1.R')
-load("/home/elmer/Dropbox/IDEAS/cibersort/MIXTURE/Data/LM22.RData")
+source('Utils/MIXTURE.DEBUG_V0.1.R')
+load("Data/LM22.RData")
 
 M <- LM22
 M.c <- M
@@ -144,7 +144,7 @@ out.abis <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, functionMix
 #out.abis.ncrfe <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, functionMixture =  nc.rfe.rlm, useCores = 1L)
 
 ##upload CIBERSORT proportions from CIBERSORT site for scaneario a
-cib.site <- ReadCibersortWebResults(file="/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/LM22.Pure.CIBERSORT.Output_Job1.csv", type = "csv")
+cib.site <- ReadCibersortWebResults(file="Data/LM22.Pure.CIBERSORT.Output_Job1.csv", type = "csv")
 
 ##Amount of estimated cell types
 ciber<- apply(cib.site>0,1, sum) ##verificar si es 1 o 2
@@ -242,32 +242,32 @@ M.abis[M.abis == 0] <- NA
 
 
 ##Heatmaps for each model
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/CIBERSORT.eps")##we can manage better
-Heatmap(M.ciber.aux, cluster_rows = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) 
-dev.off()
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/CIBERSORTweb.eps")##we can manage better
-Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) 
-dev.off()
-
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/ABBAS.eps")##we can manage better
-Heatmap(M.abbas, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "ABBAS",name = "ABBAS",col = c("blue","red")) 
-dev.off()
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/MIXTURE.eps")##we can manage better
-Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",col = c("red", "blue")) 
-dev.off()
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/DTANGLE.eps")##we can manage better
-Heatmap(M.dt, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "DTANGLE",name = "DTANGLE",col = c("blue", "red")) 
-dev.off()
-
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/CIBERSORT.eps")##we can manage better
+# Heatmap(M.ciber.aux, cluster_rows = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) 
+# dev.off()
+# 
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/CIBERSORTweb.eps")##we can manage better
+# Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) 
+# dev.off()
+# 
+# 
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/ABBAS.eps")##we can manage better
+# Heatmap(M.abbas, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "ABBAS",name = "ABBAS",col = c("blue","red")) 
+# dev.off()
+# 
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/MIXTURE.eps")##we can manage better
+# Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",col = c("red", "blue")) 
+# dev.off()
+# 
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/DTANGLE.eps")##we can manage better
+# Heatmap(M.dt, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "DTANGLE",name = "DTANGLE",col = c("blue", "red")) 
+# dev.off()
+# 
 
 setEPS()
 
@@ -276,9 +276,9 @@ M.abis2[M.abis2 < 0] <- NA
 diag(M.abis2) <-0 
 diag(M.abis2)  <- max(M.abis2, na.rm=T )
 
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/ABIS.eps")##we can manage better
-Heatmap(M.abis2, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "ABIS",name = "ABIS",col = c("blue", "red")) 
-dev.off()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/ABIS.eps")##we can manage better
+# Heatmap(M.abis2, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "ABIS",name = "ABIS",col = c("blue", "red")) 
+# dev.off()
 
 
 summary(cbind(CIBERSORT=as.numeric(M.cib.site), MIXTURE = as.numeric(M.nu.robust), ABBAS= as.numeric(M.abbas), 
@@ -308,12 +308,12 @@ diag(M.abbas.aux2) <- 0.04
 #so we set the color limit to 0.04 to enhance this values in the heatmap.
 #The color for the real coefficient will be "red" the full scale value of 0.04 spite
 #the range was 0.0.9334 - 0.9669. It will be manually corrected in the Supplementary Fig.
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/AbbasColinearity.eps")##we can manage better
-Heatmap(M.abbas.aux2, cluster_rows = FALSE, show_row_names = TRUE, 
-        cluster_columns = FALSE, column_title = "ABBAS",name = "ABBAS",
-        col = colorRamp2(c(0, 0.04), c("blue",  "red"))) 
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/AbbasColinearity.eps")##we can manage better
+# Heatmap(M.abbas.aux2, cluster_rows = FALSE, show_row_names = TRUE, 
+#         cluster_columns = FALSE, column_title = "ABBAS",name = "ABBAS",
+#         col = colorRamp2(c(0, 0.04), c("blue",  "red"))) 
+# dev.off()
 
 ##multicolinearity for DTANGLE
 M.dt.aux <- M.dt
@@ -321,12 +321,12 @@ diag(M.dt.aux) <- NA
 summary(as.numeric(M.dt.aux))
 diag(M.dt.aux) <- max(as.numeric(M.dt.aux), na.rm=T)
 
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/DTANGLEColinearity.eps")##we can manage better
-Heatmap(M.dt.aux, cluster_rows = FALSE, show_row_names = TRUE, 
-        cluster_columns = FALSE, column_title = "DTANGLE",name = "DTANGLE",
-        col = colorRamp2(c(0, 0.25), c("blue",  "red"))) 
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/DTANGLEColinearity.eps")##we can manage better
+# Heatmap(M.dt.aux, cluster_rows = FALSE, show_row_names = TRUE, 
+#         cluster_columns = FALSE, column_title = "DTANGLE",name = "DTANGLE",
+#         col = colorRamp2(c(0, 0.25), c("blue",  "red"))) 
+# dev.off()
 M.abis2 <- M.abis
 M.abis2[M.abis2 <= 0] <- NA
 
@@ -352,21 +352,21 @@ Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = FALSE, cluster_column
         col = c("blue","red"),show_heatmap_legend = FALSE, show_column_names = FALSE) +
   Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",
           col = c("red", "blue"),show_heatmap_legend = FALSE, show_column_names = FALSE) 
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.eps", paper = "a4", horizontal = FALSE, width = 800)##we can manage better
-print(hp)
-dev.off()
-
-
-
-pdf("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.pdf", paper = "a4r", width = 12)##we can manage better
-print(hp)
-dev.off()
-
-jpeg("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.jpg", width = 600)##we can manage better
-print(hp)
-dev.off()
-
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.eps", paper = "a4", horizontal = FALSE, width = 800)##we can manage better
+# print(hp)
+# dev.off()
+# 
+# 
+# 
+# pdf("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.pdf", paper = "a4r", width = 12)##we can manage better
+# print(hp)
+# dev.off()
+# 
+# jpeg("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.jpg", width = 600)##we can manage better
+# print(hp)
+# dev.off()
+# 
 Heatmap(CorrLM22, cluster_rows = FALSE, show_column_names = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "Cor LM22",name = "Cor LM22",col = c("blue", "red"),top_annotation = annot, top_annotation_height = unit(5, "cm")) +
 Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) +
   Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",col = c("red", "blue")) 
@@ -383,7 +383,7 @@ Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = FALSE, cluster_column
 ## then, a new mixture is build by LMM * betas
 
 
-betas.list <- readRDS("/home/elmer/Dropbox/IDEAS/cibersort/MIXTURE/Data/betas.list.rds")
+betas.list <- readRDS("Data/betas.list.rds")
 
 ## assigning to M.c matrix the simulated cell-types mixtures
 M.pure <- do.call(cbind, lapply(betas.list, function(x) x$A))
@@ -404,7 +404,7 @@ out.betas.abis <- MIXTURE(expressionMatrix = M.pure, signatureMatrix =  LM22, fu
 # out.betas.ncrfe.abis <- MIXTURE(expressionMatrix = M.pure, signatureMatrix =  LM22, functionMixture =  nc.rfe.rlm, useCores = 1L)
 
 ##Getting the estimated proportions (beta hat)
-M.r.cib <- ReadCibersortWebResults("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/MixPure.CIBERSORT.Output_Job5.csv", type = "csv")
+M.r.cib <- ReadCibersortWebResults("Data/MixPure.CIBERSORT.Output_Job5.csv", type = "csv")
 
 M.r.robust <- GetMixture(out.betas.robust, "prop")
 M.r.abbas <- GetMixture(out.betas.abbas, "prop")
@@ -486,15 +486,15 @@ df.betas <- data.frame(est = c( abbas.bet.length, dtangle.length, cibersort.web.
 
 #Figure 1.C
 
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NumeberOfCoeffsPURE.eps")##we can manage better
-p.betascount <- ggplot(df.betas, aes(x=beta, y=est, fill = method)) +
-  geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
-  labs( x = "True number of coefficients",
-        y = "Estimated number of coefficients", 
-        fill = "Algorithm")+ theme_bw() 
-print(p.betascount)
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NumeberOfCoeffsPURE.eps")##we can manage better
+# p.betascount <- ggplot(df.betas, aes(x=beta, y=est, fill = method)) +
+#   geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
+#   labs( x = "True number of coefficients",
+#         y = "Estimated number of coefficients", 
+#         fill = "Algorithm")+ theme_bw() 
+# print(p.betascount)
+# dev.off()
 PureNumBetasPlot <-   ggplot(df.betas, aes(x=beta, y=est, fill = method)) +
   geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
   labs( x = "True number of coefficients",
@@ -550,7 +550,7 @@ summary(cbind(CIBERSORT= TestExtraBetas(GetMixture(out.betas.cib, "prop"), betas
 
 
 
-betas.noise.list <- readRDS(file = "/home/elmer/Dropbox/IDEAS/cibersort/MIXTURE/Data/betas.noise.list.rds")
+betas.noise.list <- readRDS(file = "Data/betas.noise.list.rds")
 M.pure.noise <- do.call(cbind, lapply(betas.noise.list, function(x) x$A))
 
 
@@ -572,7 +572,7 @@ out.betas.noise.abis <- MIXTURE(expressionMatrix = M.pure.noise, signatureMatrix
 
 
 ##from CIBERSORT site
-M.r.cib.noise <-ReadCibersortWebResults("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/NoiseMix.CIBERSORT.Output_Job4.csv", type = "csv")
+M.r.cib.noise <-ReadCibersortWebResults("Data/NoiseMix.CIBERSORT.Output_Job4.csv", type = "csv")
 
 
 Beta.noise <- do.call(rbind, lapply(betas.noise.list, function(x) x$beta))
@@ -640,10 +640,10 @@ p <- ggplot(df.n.BlandAltman, aes(betasim, difs)) +
   labs( x = "True Simulated coefficients",y = "Estimated - Simulated coefficients")+
   theme_bw()+ ggtitle("A")+ ylim(-.45, 0.6)+
   facet_wrap(~Method, nrow = 1)
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/BlandAltmanEstimatedBetasNoise.eps")##we can manage better
-print(p)
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/BlandAltmanEstimatedBetasNoise.eps")##we can manage better
+# print(p)
+# dev.off()
 
 df.pn.summary <- ddply(df.n.BlandAltman[df.n.BlandAltman$betasim>0,], .(Method), summarise, mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T))
 ggplot(df.n.BlandAltman[df.n.BlandAltman$betasim>0,], aes(betasim, difs)) + 
@@ -655,17 +655,17 @@ ggplot(df.n.BlandAltman[df.n.BlandAltman$betasim>0,], aes(betasim, difs)) +
 
 sf <- subset(df.n.BlandAltman[df.n.BlandAltman$betasim>0,])#, Method %in% c("CIBERSORT","MIXTURE"))
 sf.summary <- ddply(sf, .(Method), summarise, mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T))
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/BlandAltmanEstimatedBetasPureNoise.eps")##we can manage better
-ggplot(sf, aes(betasim, difs), colour = c("red","yellow")) + 
-  geom_point(size = 0.5) + geom_smooth( method = "loess", span=0.5, fill = "green", color = "red", size = 0.5) + ylim(-0.13,0.08) +
-  geom_hline(data=sf.summary,aes(yintercept=round(mean,3)), size =0.5) +
-  geom_hline(data=sf.summary,aes(yintercept=round(mean+2*sd,3)), size =0.5) + 
-  geom_hline(data=sf.summary,aes(yintercept=round(mean-2*sd,3)), size =0.5) +
-  geom_hline(yintercept = 0, size =0.5, color = "blue") + 
-  labs( x = "True Simulated coefficients",y = "Estimated - Simulated")+
-  facet_wrap(~Method)
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/BlandAltmanEstimatedBetasPureNoise.eps")##we can manage better
+# ggplot(sf, aes(betasim, difs), colour = c("red","yellow")) + 
+#   geom_point(size = 0.5) + geom_smooth( method = "loess", span=0.5, fill = "green", color = "red", size = 0.5) + ylim(-0.13,0.08) +
+#   geom_hline(data=sf.summary,aes(yintercept=round(mean,3)), size =0.5) +
+#   geom_hline(data=sf.summary,aes(yintercept=round(mean+2*sd,3)), size =0.5) + 
+#   geom_hline(data=sf.summary,aes(yintercept=round(mean-2*sd,3)), size =0.5) +
+#   geom_hline(yintercept = 0, size =0.5, color = "blue") + 
+#   labs( x = "True Simulated coefficients",y = "Estimated - Simulated")+
+#   facet_wrap(~Method)
+# dev.off()
 
 
 ##bias for B>0
@@ -685,11 +685,11 @@ ddply(subset(df.n.BlandAltman, betasim == 0), .(Method), summarise, mean = mean(
 # 3   DTANGLE 0.033408455 0.069108288 0.9415084  0.0001124162
 # 4 CIBERSORT 0.003316475 0.007464299 0.1528796  0.0000000000
 # 5   MIXTURE 0.000804109 0.004062058 0.1069340  0.0000000000
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/EstimatedBetasNull.eps")##we can manage better
-ggplot(subset(df.n.BlandAltman, betasim == 0), aes(Method, betahat, fill=Method)) + geom_boxplot()+
-  labs( x = "Estimation Method",y = "Estimated coefficient for null simulated ones")
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/EstimatedBetasNull.eps")##we can manage better
+# ggplot(subset(df.n.BlandAltman, betasim == 0), aes(Method, betahat, fill=Method)) + geom_boxplot()+
+#   labs( x = "Estimation Method",y = "Estimated coefficient for null simulated ones")
+# dev.off()
 
 
 wilcox.test(difs~Method, subset(df.n.BlandAltman, betasim == 0 & Method %in% c("CIBERSORT","MIXTURE")), paired =TRUE)
@@ -746,30 +746,30 @@ df.betas.noise$Scenario <- "Noise"
 df.total <- rbind(df.betas, df.betas.noise)
 df.total$Scenario <- factor(df.total$Scenario, levels = c("Pure","Noise"))
 ##FIGURE 1
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.eps")##we can manage better
-ggplot(df.total, aes(x=beta, y=est, fill = method)) +
-  geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
-  labs( x = "True number of coefficients",
-        y = "Estimated number of coefficients", 
-        fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
-dev.off()
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.eps")##we can manage better
+# ggplot(df.total, aes(x=beta, y=est, fill = method)) +
+#   geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
+#   labs( x = "True number of coefficients",
+#         y = "Estimated number of coefficients", 
+#         fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
+# dev.off()
+# 
 
-
-pdf("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.pdf")##we can manage better
-ggplot(df.total, aes(x=beta, y=est, fill = method)) +
-  geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
-  labs( x = "True number of coefficients",
-        y = "Estimated number of coefficients", 
-        fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
-dev.off()
-
-jpeg("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.jpg")##we can manage better
-ggplot(df.total, aes(x=beta, y=est, fill = method)) +
-  geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
-  labs( x = "True number of coefficients",
-        y = "Estimated number of coefficients", 
-        fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
-dev.off()
+# pdf("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.pdf")##we can manage better
+# ggplot(df.total, aes(x=beta, y=est, fill = method)) +
+#   geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
+#   labs( x = "True number of coefficients",
+#         y = "Estimated number of coefficients", 
+#         fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
+# dev.off()
+# 
+# jpeg("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/FIG2.jpg")##we can manage better
+# ggplot(df.total, aes(x=beta, y=est, fill = method)) +
+#   geom_boxplot(position = position_dodge(1) ) + ylim(1,22) +
+#   labs( x = "True number of coefficients",
+#         y = "Estimated number of coefficients", 
+#         fill = "Algorithm") + theme_bw() + facet_wrap(~Scenario) 
+# dev.off()
 
 

@@ -1,6 +1,6 @@
 ##REAL DATA from Noewman
 library(dtangle)
-source('~/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/MIXTURE.DEBUG_V0.1.R')
+source('Utils/MIXTURE.DEBUG_V0.1.R')
 ##since FL only contains B, CD8 and CD4 cells, we merge (sum) the proportions of such cell according to Newman et al.
 cell.types.names11 <- c("B","B","PC","CD8","CD4","CD4","CD4","CD4","CD4","TGD","NK","NK","Mo","Ma","Ma","Ma","D","D","Mt","Mt","Eo","N")
 CompositeMixture <- function(mixt, composite){
@@ -10,8 +10,8 @@ CompositeMixture <- function(mixt, composite){
 
 
 ##load Data from Newman (downloaded from DTANGLE source code)
-load("~/Dropbox/IDEAS/cibersort/BioinfoPapersDeconvolution/newman_pbmc.rda")
-load("~/Dropbox/IDEAS/cibersort/BioinfoPapersDeconvolution/newman_fl.rda")
+load("Data/newman_pbmc.rda")
+load("Data/newman_fl.rda")
 
 ##prepare data for CIBERSORT and MIXTURE
 FL <- t(2^newman_fl$data$log)[,1:14]
@@ -32,27 +32,27 @@ rn <- rownames(PBMC)
 
 
 ##Read Results from CIBERSORT web site
-FL.cib.site <- ReadCibersortWebResults(file = "/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/FL_CIBERSORT.Output_Job6.csv")
-PBMC.cib.site <- ReadCibersortWebResults(file = "/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/PBMC_CIBERSORT.Output_Job7.csv")
+FL.cib.site <- ReadCibersortWebResults(file = "Data/FL_CIBERSORT.Output_Job6.csv")
+PBMC.cib.site <- ReadCibersortWebResults(file = "Data/PBMC_CIBERSORT.Output_Job7.csv")
 
 ##read single subject CIBERSORT web
 
-FL.cib.ss <- do.call(rbind, lapply(1:14, function(x) {
-  print(paste("FL",x))
-  cat("\n")
-  read.csv(paste("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/CIBres/FL",x,".csv", sep=""),h=T)
-} ))
-colnames(FL.cib.ss) <- str_replace_all(colnames(FL.cib.ss),"\\.", " " )
-colnames(FL.cib.ss)[10] <- "T cells regulatory  (Tregs)" 
-rownames(FL.cib.ss) <- paste("FL",1:14,sep=" ")
-
-PBMC.cib.ss <- do.call(rbind, lapply(1:20, function(x) {
-  print(paste("PBMC",x))
-  read.csv(paste("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/CIBres/PBMC",x,".csv", sep=""),h=T)
-} ))
-colnames(PBMC.cib.ss) <- str_replace_all(colnames(PBMC.cib.ss),"\\.", " " )
-colnames(PBMC.cib.ss)[10] <- "T cells regulatory  (Tregs)" 
-rownames(PBMC.cib.ss) <- paste("PBMC",1:20,sep=" ")
+# FL.cib.ss <- do.call(rbind, lapply(1:14, function(x) {
+#   print(paste("FL",x))
+#   cat("\n")
+#   read.csv(paste("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/CIBres/FL",x,".csv", sep=""),h=T)
+# } ))
+# colnames(FL.cib.ss) <- str_replace_all(colnames(FL.cib.ss),"\\.", " " )
+# colnames(FL.cib.ss)[10] <- "T cells regulatory  (Tregs)" 
+# rownames(FL.cib.ss) <- paste("FL",1:14,sep=" ")
+# 
+# PBMC.cib.ss <- do.call(rbind, lapply(1:20, function(x) {
+#   print(paste("PBMC",x))
+#   read.csv(paste("/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/CIBres/PBMC",x,".csv", sep=""),h=T)
+# } ))
+# colnames(PBMC.cib.ss) <- str_replace_all(colnames(PBMC.cib.ss),"\\.", " " )
+# colnames(PBMC.cib.ss)[10] <- "T cells regulatory  (Tregs)" 
+# rownames(PBMC.cib.ss) <- paste("PBMC",1:20,sep=" ")
 
 
 ##Process by MIXTURE
@@ -181,14 +181,16 @@ p.FL <- ggplot(df.FL, aes(truth, dif)) +
   theme_bw()+ theme(legend.position = "none") + ggtitle("B")+
   facet_wrap(~model, nrow = 1)
 
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.eps")##we can manage better
-print(p.FL)
-dev.off()
 
-png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.png")##we can manage better
-print(p.FL)
-dev.off()
+##Generate the figures#####
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.eps")##we can manage better
+# print(p.FL)
+# dev.off()
+# 
+# png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.png")##we can manage better
+# print(p.FL)
+# dev.off()
 
 
 
@@ -280,14 +282,14 @@ p.PBMC <-ggplot(df.PBMC, aes(x, dif)) +
 
 print(p.PBMC)
 
-png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.png")##we can manage better
-print(p.PBMC)
-dev.off()
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.eps")##we can manage better
-print(p.PBMC)
-dev.off()
+# png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.png")##we can manage better
+# print(p.PBMC)
+# dev.off()
+# 
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.eps")##we can manage better
+# print(p.PBMC)
+# dev.off()
 
 dens  <- lapply(c("CIBERSORT", "ABBAS", "DTANGLE","MIXTURE"), function(x) ggplot(subset(df.PBMC, model == x), aes(dif)) + geom_density() + coord_flip())
 ba.plot <- lapply(c("CIBERSORT", "ABBAS", "DTANGLE","MIXTURE"), function(x) ggplot(subset(df.PBMC, model == x), aes(truth, dif)) + 
