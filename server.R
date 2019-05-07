@@ -61,8 +61,18 @@ shinyServer( function(input, output, session) {
     }else{
       dataset$filepath <- input$GeneExpr$datapath
       dataset$sampleMat <- read.xlsx(input$GeneExpr$datapath)
-      rownames(dataset$sampleMat) <- dataset$sampleMat[,1]
-      dataset$sampleMat <- dataset$sampleMat[,-1]  
+      ##verify rownames 
+      if( any(duplicated(dataset$sampleMat[,1]))) {
+        ##hay duplicados
+        m <- avereps(dataset$sampleMat[,-1] , ID = dataset$sampleMat[,1])
+        dataset$sampleMat <-m
+        rownames(dataset$sampleMat) <- unique(dataset$sampleMat[,1])
+            
+      }else{
+        dataset$sampleMat <- dataset$sampleMat[,-1]
+        rownames(dataset$sampleMat) <- dataset$sampleMat[,1]
+      }
+      
       data$file2save <- str_replace(dataset$name,".xlsx","MIXTURE_RES.xlsx")
       
       

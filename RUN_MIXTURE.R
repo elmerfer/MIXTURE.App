@@ -14,9 +14,15 @@ source("/Utils/MIXTURE.DEBUG_V0.1.R")
 
 ##Choose you sample file
 # sgm <- read.xlsx("/Data/BRCA.subsample.xlsx")
-
-rownames(sgm ) <- sgm[,1]
-sgm <- sgm[,-1]
+## Verify if duplicated gene symbols
+if( any(duplicated(sgm[,1]))){
+  m <- avereps(sgm[,-1], ID=  sgm[,1])
+  rownames(m ) <- unique(sgm[,1])
+  sgm <- m
+}else{
+  rownames(sgm ) <- sgm[,1]
+  sgm <- sgm[,-1]  
+}
 
 mix.test <- MIXTURE(expressionMatrix = sgm,      #N x ncol(signatureMatrix) gene expresion matrix to evaluate 
                                                     ##rownames(M) should be the GeneSymbols
