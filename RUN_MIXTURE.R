@@ -8,9 +8,9 @@
 # source('~/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Current/MIXTURE/MIXTURE.R')
 ##Load signature matrix
 library(openxlsx)
-load("/Data/LM22.RData")
+load("Data/LM22.RData")
 
-source("/Utils/MIXTURE.DEBUG_V0.1.R")
+source("Utils/MIXTURE.DEBUG_V0.1.R")
 
 ##Choose you sample file
 # sgm <- read.xlsx("/Data/BRCA.subsample.xlsx")

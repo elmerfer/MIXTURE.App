@@ -355,6 +355,25 @@ GetUsedGenes <- function(obj){
   ## a vector of GeneSymbols 
   return(obj$usedGenes)
 }
+
+# GetMergedCellTypes <- function(obj, ctClassType  = c("Original","merge4","merge5","merge10","merge11")){
+GetMergedCellTypes <- function(obj, ctClassType){  
+##This function merges and summarize the cell types proportion from the 22 cell-types to the 11 ones defined by Newman et al.  
+  # ctClassType <- match.arg(ctClassType, c("Original","merge4","merge5","merge10","merge11"))
+  # if(ctClassType == "Original") return(GetMixture(obj))
+  # char.c <- as.character(LM22.CellTypesClasses[LM22.CellTypesClasses$Type == paste("LM22-",ctClassType,sep=""),-c(1:2)])
+  char.c <- ctClassType
+  M <- do.call(cbind, lapply(unique(char.c), function(x,mat,ref) {
+    rowSums(mat[,which(ref == x),drop=F])
+  }, mat = GetMixture(obj), ref = char.c))
+  
+  
+  # M<-data.matrix(t(aggregate(data.frame(t(GetMixture(obj))), 
+  #                            by= list(char.c), FUN = sum)[,-1]))
+  colnames(M) <- unique(char.c)
+  return(M)
+}
+
 ##Saving - Open Functions----
 SaveExcel <- function(obj, fileSave){
 ##This function save the MIXTURE results into an EXCEL(r) file. It is internally called by MIXTURE if specified

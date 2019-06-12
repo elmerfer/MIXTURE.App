@@ -19,7 +19,7 @@ source("Utils/MIXTURE.DEBUG_V0.1.R")
 
 options(shiny.maxRequestSize=30*1024^2)
 
-.num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
+# .num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
 
 
 load("Data/LM22.RData")

@@ -10,7 +10,7 @@ library(shinyjs)
 
 library(parallel)
 library(DT)
-.num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
+#.num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
 # sigmat <- LM22
 
 navbarPage("MIXTURE",

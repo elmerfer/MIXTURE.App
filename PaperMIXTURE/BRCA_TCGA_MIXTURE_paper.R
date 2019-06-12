@@ -14,10 +14,10 @@ library(survminer)
 library(parallel)
 library(openxlsx)
 
-source('/Utils/MIXTURE.DEBUG_V0.1.R')
+source('Utils/MIXTURE.DEBUG_V0.1.R')
 ##change the directory to your own directory!!!
 #the BRCA RNAseq data can be downloaded from https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0
-# brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
+ brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
 TNBC <- apply(brca$targets[,c("er","pgr","her2")],1, FUN = function(x) all(x == "negative"))
 brca$targets$TNBC <- TNBC ##defining Triple Negative BRCA
 
