@@ -17,7 +17,7 @@ library(openxlsx)
 source('Utils/MIXTURE.DEBUG_V0.1.R')
 ##change the directory to your own directory!!!
 #the BRCA RNAseq data can be downloaded from https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0
- brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
+brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
 TNBC <- apply(brca$targets[,c("er","pgr","her2")],1, FUN = function(x) all(x == "negative"))
 brca$targets$TNBC <- TNBC ##defining Triple Negative BRCA
 
@@ -57,11 +57,11 @@ ncores2use <- 10L
  # brca.cib.n <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture =  cibersort, useCores = ncores2use, verbose  =  TRUE,
  #                       iter = 1000, nullDist = "PopulationBased")
 # 
- brca.mix.n <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture =  nu.svm.robust.RFE, useCores = ncores2use, verbose  =  TRUE,
+brca.mix.n <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture =  nu.svm.robust.RFE, useCores = ncores2use, verbose  =  TRUE,
                        iter = 1000, nullDist = "PopulationBased")
 # 
 # 
- brca.abbas.n <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture = ls.rfe.abbas, useCores = ncores2use, verbose  =  TRUE,
+brca.abbas.n <- MIXTURE(expressionMatrix = M.brca.n, signatureMatrix =  LM22, functionMixture = ls.rfe.abbas, useCores = ncores2use, verbose  =  TRUE,
                          iter = 1000, nullDist = "none")
  
  
@@ -109,41 +109,110 @@ CT.brca.abis <- GetMixture(brca.abis,"proportion")
 
 ##Survival by PAM50 intrinsic sutype (defined by PBCMC - Fresno et al. https://doi.org/10.1093/bioinformatics/btw704)
 clasif <- as.factor(brca$targets$pam50.pbcmc)
-#Short vs Long survival on Macrophages M2
 
-# cellt <- "Macrophages M2"
-#cellt <- "Plasma cells"
-# df.m2 <- data.frame(Clasif = rep(clasif, 5),
-#                     CT = c(CT.brca.dt[,cellt],
-#                            GetMixture(brca.mix.n,"prop")[,cellt],
-#                            GetMixture(brca.abbas.n,"prop")[,cellt],
-#                            brca.ciber.web[,cellt],
-#                            GetMixture(brca.abis,"prop")[,cellt]),
-#                  Method = factor(rep(c("DTANGLE","MIXTURE", "ABBAS", "CIBERSORT", "ABIS"), each = ncol(brca$E)),
-#                                  levels = c("ABBAS","ABIS","DTANGLE","CIBERSORT","MIXTURE")),
-#                  Time = rep(brca$targets$survival.days /356, 5),
-#                  Event = rep(brca$targets$vital.status, 5),
-#                  PBCMC = rep(brca$targets$pam50.pbcmc,5),
-#                  PAM50 = rep(brca$targets$pam50,5),
-#                  ER = rep(brca$targets$er,5)
-#                             )
-# colnames(GetMixture(brca.mix.n,"prop"))
+
+##All samples 
+round(100*cbind(CIBERSORT=apply(brca.ciber.web,2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n),2,function(x) sum(x>0)))/nrow(brca.ciber.web),2)
+write.table(round(100*cbind(CIBERSORT=apply(brca.ciber.web,2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n),2,function(x) sum(x>0)))/nrow(brca.ciber.web),2), file ="Tabla.txt")
+#                           CIBERSORT MIXTURE
+# B cells naive                91.93 35.14
+# B cells memory               17.37  5.84
+# Plasma cells                 82.88 60.99 *
+# T cells CD8                  72.10 31.93
+# T cells CD4 naive             1.81  0.33
+# T cells CD4 memory resting   96.38 42.39
+# T cells CD4 memory activated 17.28  3.21
+# T cells follicular helper    99.09 90.95  *https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3696556/
+# T cells regulatory  Tregs    83.70 44.12
+# T cells gamma delta           6.58  0.91
+# NK cells resting             77.37 14.07
+# NK cells activated           43.79  3.70
+# Monocytes                    57.86 10.62
+# Macrophages M0               83.13 73.66 
+# Macrophages M1               91.19 74.81 *https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5509958/
+# Macrophages M2               99.26 97.78
+# Dendritic cells resting      27.57  7.65
+# Dendritic cells activated    36.30 17.86
+# Mast cells resting           96.71 50.53 * https://link.springer.com/article/10.1007%2Fs10549-007-9546-3
+# Mast cells activated          4.20  0.91
+# Eosinophils                   6.67  0.00
+# Neutrophils                  12.18  1.23
+
+##Table 3 of the paper
+##Tumor samples
+id.tumor <- which(brca$targets$sample == "01")
+round(100*cbind(CIBERSORT=apply(brca.ciber.web[id.tumor,],2,function(x) sum(x>0)), 
+                MIXTURE=apply(GetMixture(brca.mix.n)[id.tumor,],2,function(x) sum(x>0)))/nrow(brca.ciber.web[id.tumor,]),2)
+write.table(round(100*cbind(CIBERSORT=apply(brca.ciber.web[id.tumor,],2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n)[id.tumor,],2,function(x) sum(x>0)))/nrow(brca.ciber.web[id.tumor,]),2), file ="TablaOnlyTumor.txt")
+#                                 CIBERSORT MIXTURE
+# B cells naive                    92.33   37.35
+# B cells memory                   18.54    6.03
+# Plasma cells                     82.01   58.90
+# T cells CD8                      72.15   32.88
+# T cells CD4 naive                 1.83    0.27
+# T cells CD4 memory resting       95.98   37.81
+# T cells CD4 memory activated     19.00    3.56
+# T cells follicular helper        99.54   93.79
+# T cells regulatory  Tregs        88.49   48.68
+# T cells gamma delta               7.03    1.00
+# NK cells resting                 78.26   12.97
+# NK cells activated               41.10    3.01
+# Monocytes                        53.97    8.40
+# Macrophages M0                   87.49   79.00
+# Macrophages M1                   92.42   77.63
+# Macrophages M2                   99.18   97.72
+# Dendritic cells resting          27.58    8.22
+# Dendritic cells activated        34.61   17.53
+# Mast cells resting               96.89   49.95
+# Mast cells activated              3.74    0.46
+# Eosinophils                       5.39    0.00
+# Neutrophils                      12.69    1.19
+
+##Mormal samples
+id.mormal <- which(brca$targets$sample =="11")
+round(100*cbind(CIBERSORT=apply(brca.ciber.web[id.mormal,],2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n)[id.mormal,],2,function(x) sum(x>0)))/nrow(brca.ciber.web[id.mormal,]),2)
+#                               CIBERSORT MIXTURE
+# B cells naive                    87.61   11.50
+# B cells memory                    4.42    1.77
+# Plasma cells                     93.81   82.30
+# T cells CD8                      71.68   22.12
+# T cells CD4 naive                 0.88    0.00
+# T cells CD4 memory resting      100.00   85.84
+# T cells CD4 memory activated      1.77    0.00
+# T cells follicular helper        94.69   63.72
+# T cells regulatory  Tregs        38.05    0.88
+# T cells gamma delta               2.65    0.00
+# NK cells resting                 69.03   25.66
+# NK cells activated               68.14   10.62
+# Monocytes                        92.92   30.09
+# Macrophages M0                   44.25   24.78
+# Macrophages M1                   80.53   48.67
+# Macrophages M2                  100.00   98.23
+# Dendritic cells resting          28.32    1.77
+# Dendritic cells activated        50.44   21.24
+# Mast cells resting               94.69   57.52
+# Mast cells activated              7.96    4.42
+# Eosinophils                      18.58    0.00
+# Neutrophils                       7.08    0.88
+
 
 ## Only CIBERSORT and MIXTURE
+
 cellt <- "T cells follicular helper"
 cellt <- "Macrophages M0"
 acronim <- "M0"
 df.m2 <- data.frame(Clasif = rep(clasif, 2),
-                    CT = c(GetMixture(brca.mix.n,"prop")[,cellt],
+                    CT = c(GetMixture(brca.mix.n,"prop")[id.tumor,cellt],
                            brca.ciber.web[,cellt]),
                     Method = factor(rep(c("MIXTURE", "CIBERSORT"), each = ncol(brca$E)),
                                     levels = c("CIBERSORT","MIXTURE")),
-                    Time = rep(brca$targets$survival.days /356, 2),
-                    Event = rep(brca$targets$vital.status, 2),
-                    PBCMC = rep(brca$targets$pam50.pbcmc,2),
-                    PAM50 = rep(brca$targets$pam50,2),
-                    ER = rep(brca$targets$er,2)
+                    Time = rep(brca$targets$survival.days[id.tumor] /356, 2),
+                    Event = rep(brca$targets$vital.status[id.tumor], 2),
+                    PBCMC = rep(brca$targets$pam50.pbcmc[id.tumor],2),
+                    PAM50 = rep(brca$targets$pam50[id.tumor],2),
+                    ER = rep(brca$targets$er[id.tumor],2)
 )
+
 for(s in c("Basal","Her2","LumB","LumA")){
   lapply( c("CIBERSORT","MIXTURE"), function(i){
     df.test.mix <- subset(df.m2, Method == i & PBCMC == s   )
@@ -185,32 +254,9 @@ gs <- lapply( c("CIBERSORT","MIXTURE"), function(i){
 # dev.off()
 # 
 
+CT.mix.presence <- GetCellTypes(brca.mix.n)
 
-round(100*cbind(CIBERSORT=apply(brca.ciber.web,2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n),2,function(x) sum(x>0)))/nrow(brca.ciber.web),2)
-write.table(round(100*cbind(CIBERSORT=apply(brca.ciber.web,2,function(x) sum(x>0)), MIXTURE=apply(GetMixture(brca.mix.n),2,function(x) sum(x>0)))/nrow(brca.ciber.web),2), file ="Tabla.txt")
-#                           CIBERSORT MIXTURE
-# B cells naive                91.93 35.14
-# B cells memory               17.37  5.84
-# Plasma cells                 82.88 60.99 *
-# T cells CD8                  72.10 31.93
-# T cells CD4 naive             1.81  0.33
-# T cells CD4 memory resting   96.38 42.39
-# T cells CD4 memory activated 17.28  3.21
-# T cells follicular helper    99.09 90.95  *https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3696556/
-# T cells regulatory  Tregs    83.70 44.12
-# T cells gamma delta           6.58  0.91
-# NK cells resting             77.37 14.07
-# NK cells activated           43.79  3.70
-# Monocytes                    57.86 10.62
-# Macrophages M0               83.13 73.66 
-# Macrophages M1               91.19 74.81 *https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5509958/
-# Macrophages M2               99.26 97.78
-# Dendritic cells resting      27.57  7.65
-# Dendritic cells activated    36.30 17.86
-# Mast cells resting           96.71 50.53 * https://link.springer.com/article/10.1007%2Fs10549-007-9546-3
-# Mast cells activated          4.20  0.91
-# Eosinophils                   6.67  0.00
-# Neutrophils                  12.18  1.23
+
 for(i in c("CIBERSORT","MIXTURE")){
   df.test.mix <- subset(df.m2, Method == i  & ER == "negative" )
   df.test.mix$qe <- quantilize(df.test.mix$CT, c(0.33,0.66))
