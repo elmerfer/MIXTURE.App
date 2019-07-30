@@ -1,0 +1,170 @@
+---
+title: "HNSCC script"
+date: "June 19, 2019"
+output: html_notebook
+---
+
+Loading libraries and data 
+
+```{r}
+library("affy")
+library("annotate")
+library("hgu133a.db")
+library("limma")
+library("dplyr")
+library("ggpubr")
+load("../E-TABM-302/E-TABM-302.eSet.r")
+clinical <- read.csv("../E-TABM-302/Clinical/onc2008251x7-2.txt", header = T,sep="\t")
+```
+
+Normalization
+
+```{r}
+class(study)
+AEsetnorm = rma(study)
+expressionRMA <- exprs(AEsetnorm)
+coldata <- pData(AEsetnorm)
+geneData <- featureData(AEsetnorm)
+```
+
+Anti Log2
+
+```{r}
+expressionRMA <- 2**expressionRMA
+```
+
+Gene annotation
+
+```{r}
+g_ids <- mapIds(hgu133a.db, keys=rownames(expressionRMA), c("SYMBOL"), keytype="PROBEID")
+g_ids <- as.vector(g_ids)
+rownames(expressionRMA) <- g_ids
+```
+
+Delete genes duplicated and NAs
+
+```{r}
+class(expressionRMA) <- "numeric"
+sum(duplicated(rownames(expressionRMA)))
+dim(expressionRMA)
+expressionRMA <- avereps(expressionRMA); dim(expressionRMA)
+expressionRMA <- expressionRMA[!is.na(rownames(expressionRMA)),];dim(expressionRMA)
+```
+
+CIBERSORT
+```{r}
+source("../../CIBERSORT/CIBERSORT.R") #Check CIBERSOR.R location
+write.table(expressionRMA, "./cibersort_matrix.txt",sep = "\t",col.names = NA)
+results_cibersort <- CIBERSORT('../../CIBERSORT/LM22.txt','cibersort_matrix.txt', QN= F, perm = 10, absolute = F) #Check LM22.txt location
+
+results_cibersort <- results_cibersort[,-c(23,24,25)]
+results_cibersort <- t(results_cibersort)
+results_cibersort <- as.data.frame(results_cibersort)
+colnames(results_cibersort) <- gsub("^([^_]*_[^_]*)_.*$", "\\1", colnames(results_cibersort))
+colnames(results_cibersort) <- gsub("_", "-", colnames(results_cibersort))
+```
+
+MIXTURE
+```{r}
+sgm <- expressionRMA
+source("../../CIBERSORT/MIXTURE/MIXTURE.App-master/RUN_MIXTURE.R") #Check RUN_MIXTURE.R location - This run MIXTURE on sgm object
+load("./TEST_MIXTURE_FILE_LM22.RData") #Loading results
+
+results_mixture <-  mix.test$Subjects$MIXprop
+results_mixture <- t(results_mixture)
+results_mixture <- as.data.frame(results_mixture)
+colnames(results_mixture) <- gsub("^([^_]*_[^_]*)_.*$", "\\1", colnames(results_mixture))
+colnames(results_mixture) <- gsub("_", "-", colnames(results_mixture))
+```
+
+Clinical Data
+
+```{r}
+
+recurrence_status_M <- filter(clinical, recurrence.status..1.M.0.NM.==1) %>% select(Patient)
+recurrence_status_NM <- filter(clinical, recurrence.status..1.M.0.NM.==0) %>% select(Patient)
+
+recurrence_status_M <- filter(recurrence_status_M, Patient %in% colnames(results_cibersort))
+recurrence_status_M <- as.character(unlist(recurrence_status_M))
+
+recurrence_status_NM <- filter(recurrence_status_NM, Patient %in% colnames(results_cibersort))
+recurrence_status_NM <- as.character(unlist(recurrence_status_NM))
+
+
+```
+
+Prepare table for plots
+
+```{r}
+
+#Mixture
+
+mixture_forPlot <- t(results_mixture)
+mixture_forPlot <- as.data.frame(mixture_forPlot)
+mixture_forPlot$Method <- "MIXTURE"
+mixture_forPlot$patient <- rownames(mixture_forPlot)
+mixture_forPlot <- mutate(mixture_forPlot,Recurrence = ifelse(patient %in% recurrence_status_M,"M","NM"))
+rownames(mixture_forPlot) <- mixture_forPlot[,24]
+mixture_forPlot <- mixture_forPlot[,-24]
+
+#cibersort
+
+cibersort_forPlot <- t(results_cibersort)
+cibersort_forPlot <- as.data.frame(cibersort_forPlot)
+cibersort_forPlot$Method <- "CIBERSORT"
+cibersort_forPlot$patient <- rownames(cibersort_forPlot)
+cibersort_forPlot <- mutate(cibersort_forPlot,Recurrence = ifelse(patient %in% recurrence_status_M,"M","NM"))
+rownames(cibersort_forPlot) <- cibersort_forPlot[,24]
+cibersort_forPlot <- cibersort_forPlot[,-24]
+
+
+allData_forPlot <- rbind(cibersort_forPlot,mixture_forPlot)
+
+```
+
+Plot
+
+M2 ->
+
+```{r}
+plot_m2 <-  ggboxplot(allData_forPlot, x = "Recurrence", y = "`Macrophages M2`", title = "Macrophages M2",
+         color = "Recurrence", line.color = "gray", line.size = 1, xlab = F,ylab = "", add = "jitter",
+         palette = "aaas", facet.by = "Method",short.panel.labs = T,combine=T)+theme(text = element_text(size = 30))  +
+  stat_compare_means(paired = FALSE, method = "wilcox.test",label ="p.format", label.y.npc = "top", label.x = 2.2,size=7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", paired = FALSE, label.x = 1.5,size=8)
+
+```
+
+
+Monocytes ->
+
+```{r}
+plot_monocytes <-  ggboxplot(allData_forPlot, x = "Recurrence", y = "`Monocytes`", title = "Monocytes",
+         color = "Recurrence", line.color = "gray", line.size = 1, xlab = F,ylab = "", add = "jitter",
+         palette = "aaas", facet.by = "Method",short.panel.labs = T,combine=T)+theme(text = element_text(size = 30))  +
+  stat_compare_means(paired = FALSE, method = "wilcox.test",label ="p.format", label.y.npc = "top", label.x = 2.2,size=7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", paired = FALSE, label.x = 1.5,size=8)
+
+```
+
+Arrange plots
+
+```{r fig.fullwidth=TRUE }
+
+fig_cib_vs_mixt <- ggarrange(plot_m2,plot_monocytes,plot_nkRest,plot_plasma,plot_cd4_activated,plot_follicular,
+          labels = c("A", "B","C","D","E","F"), font.label = list(size = 30, color = "black", face = "bold"),
+          common.legend=F, legend = "none",
+          ncol = 2, nrow = 3)
+
+annotate_figure(fig_cib_vs_mixt,
+                #top = text_grob("MIXTURE vs CIBERSORT", color = "black", face = "bold", size = 20),
+                #bottom = text_grob("Data source: \n Riaz et al., 2017", color = "black",
+                #hjust = 1, x = 1, face = "italic", size = 14),
+                left = text_grob("Relative proportions", color = "black", rot = 90,size = 30)
+                #right = "I'm done, thanks :-)!",
+                #fig.lab = "Figure 3", fig.lab.face = "bold",size=14
+                )
+
+```
+
+

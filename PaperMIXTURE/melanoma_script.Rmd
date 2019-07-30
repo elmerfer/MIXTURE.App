@@ -1,0 +1,191 @@
+---
+title: "Melanoma script"
+date: "June 19, 2019"
+output: html_notebook
+---
+
+Loading libraries
+
+```{r}
+library("DESeq2")
+library("TxDb.Hsapiens.UCSC.hg19.knownGene")
+library("ggplot2")
+library("annotate")
+library("org.Hs.eg.db")
+library("genefilter")
+library("Biobase")
+library("matrixStats")
+library("IHW")
+library("dplyr")
+library("ggpubr")
+```
+
+Count data pre-processing
+```{r}
+
+#This chunk of the script reproducing FPKM normalization is adapted from Riaz et al., 2017 script deposited in their GitHub repository
+
+# Build object
+
+# Read in matrix and Sample annotation
+mat <- read.delim("./CountData.BMS038.txt") #Text file must be edited to delete first tab space before column names, downloaded from Riaz et al., 2017 GitHub repository
+colnames(mat)[2:109] = substr(colnames(mat)[2:109],1,nchar(colnames(mat)[2:109])-11)
+SampleTableCorrected <- read.csv("./SampleTableCorrected.9.19.16.csv", row.names=1) #Clinical data from Riaz et al., 2017 GitHub repository
+
+# Find the overlapping samples
+inter <- intersect(colnames(mat),rownames(SampleTableCorrected))
+SampleTableCorrected <- SampleTableCorrected[inter,]
+mat <- mat[,match(rownames(SampleTableCorrected),colnames(mat))]
+
+# Create the DESeq2 object
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+ebg <- exonsBy(txdb, by="gene")
+intersection <- intersect(rownames(mat),ebg@partitioning@NAMES)
+ebg2 <- ebg[ebg@partitioning@NAMES %in% intersection]
+
+# sort by ID
+ebg2 <- ebg2[order(names(ebg2))]
+
+# Sort by gene model order
+mat <- mat[match(names(ebg2), rownames(mat)),]
+
+# Create object
+ddsMat <- DESeqDataSetFromMatrix(countData = mat,
+                                 colData = SampleTableCorrected,
+                                 design = ~ 1)
+# Assign genomic range
+rowRanges(ddsMat) <- ebg2
+
+# Get the gene symbol
+mcols(ddsMat)$symbols <-  mapIds(org.Hs.eg.db,
+                                 keys=rownames(ddsMat),
+                                 column="SYMBOL",
+                                 keytype="ENTREZID",
+                                 multiVals="first")
+
+
+# FPKM
+fpkm_exp <- fpkm(ddsMat, robust = TRUE)
+row.names(fpkm_exp) <- unlist(rowData(ddsMat))
+write.table(fpkm_exp, "./fpkmvalues_exp.txt",sep = "\t")
+
+```
+
+Patient groups
+
+```{r}
+
+#Import tables of patient groups elaborated from clinical supplementary data of Riaz et al., 2017
+
+patients_groups_riaz_paired <- read.csv("../Riaz 2017/patients_group_paired.csv") #Response and time of biopsy info for paired patients
+
+#Paired
+
+patients.r_riaz_pre_paired <- as.vector(patients_groups_riaz_paired$responders_pre)
+patients.r_riaz_pre_paired <- patients.r_riaz_pre_paired[patients.r_riaz_pre_paired!=""]
+
+patients.r_riaz_on_paired <- as.vector(patients_groups_riaz_paired$responders_on)
+patients.r_riaz_on_paired <- patients.r_riaz_on_paired[patients.r_riaz_on_paired!=""]
+
+```
+
+MIXTURE and CIBERSORT
+
+```{r}
+#MIXTURE
+mixture <- read.table("./fpkmvalues_exp.txt")
+rownames <- mixture[,1]
+mixture <- mixture[,-1]
+mixture <- as.matrix(mixture)
+rownames(mixture) <- rownames
+
+source("../../CIBERSORT/MIXTURE/MIXTURE/RUN_MIXTURE.R") #Check RUN_MIXTURE.R location - This run MIXTURE on mixture object
+
+mixture_riaz_rel <-  mix.test$Subjects$MIXprop
+mixture_riaz_rel <- t(mixture_riaz_rel)
+mixture_riaz_rel <- as.data.frame(mixture_riaz_rel)
+
+
+#CIBERSORT
+source("../../CIBERSORT/CIBERSORT.R") #Check CIBERSOR.R location
+
+results_cibersort <- CIBERSORT('../../CIBERSORT/LM22.txt','../../Tumor and Microenvironment Evolution during/fpkmvalues_exp.txt', QN= F, perm = 1, absolute = F) #Check LM22.txt location
+
+results_cibersort <-  t(results_cibersort)
+results_cibersort <- results_cibersort[-c(24,25),]
+
+```
+
+Paired analysis:
+
+```{r}
+#CIBERSORT
+
+#Responders
+ciber_matrix_pairedSamples_r <- results_cibersort[-23,c(patients.r_riaz_pre_paired,patients.r_riaz_on_paired)]
+ciber_matrix_pairedSamples_r <- t(ciber_matrix_pairedSamples_r)
+ciber_matrix_pairedSamples_r <- as.data.frame(ciber_matrix_pairedSamples_r)
+ciber_matrix_pairedSamples_r$Response <- c(rep("Pre",length(patients.r_riaz_pre_paired)),rep("On",length(patients.r_riaz_on_paired)))
+ciber_matrix_pairedSamples_r$Method <- c(rep("CIBERSORT",length(patients.r_riaz_pre_paired)*2))
+
+
+#MIXTURE
+
+#Responders
+mixture_matrix_pairedSamples_r <- mixture_riaz_rel[-23,c(patients.r_riaz_pre_paired,patients.r_riaz_on_paired)]
+mixture_matrix_pairedSamples_r <- t(mixture_matrix_pairedSamples_r)
+mixture_matrix_pairedSamples_r <- as.data.frame(mixture_matrix_pairedSamples_r)
+mixture_matrix_pairedSamples_r$Response <- c(rep("Pre",length(patients.r_riaz_pre_paired)),rep("On",length(patients.r_riaz_on_paired)))
+mixture_matrix_pairedSamples_r$Method <- c(rep("MIXTURE",length(patients.r_riaz_pre_paired)*2))
+
+#Plot
+
+table_pairedSamples_r <- rbind(ciber_matrix_pairedSamples_r,mixture_matrix_pairedSamples_r)
+table_pairedSamples_r <- table_pairedSamples_r[c(1:24,49:72,25:48,73:96),]
+
+```
+
+M2 -> Responders
+
+```{r}
+plot_m2_r <-  ggpaired(table_pairedSamples_r, x = "Response", y = "`Macrophages M2`", title = "Macrophages M2 - Responders",
+         color = "Response", line.color = "gray", line.size = 1, xlab = F,ylab = "",
+         palette = "aaas", facet.by = "Method",short.panel.labs = T,combine=T)+theme(text = element_text(size = 30))  +
+  stat_compare_means(paired = TRUE, method = "wilcox.test",label ="p.format", label.y.npc = "top", label.x = 2.2,size=7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", paired = TRUE, label.x = 1.5,size=8)
+
+```
+
+
+T cells gamma delta -> Responders
+
+```{r}
+plot_gammaDelt_r <- ggpaired(table_pairedSamples_r, x = "Response", y = "`T cells gamma delta`", title = "T cells gamma delta - Responders",
+         color = "Response", line.color = "gray", line.size = 0.4, xlab = F,ylab = "", 
+         palette = "aaas", facet.by = "Method",short.panel.labs = T,combine=T) + theme(text = element_text(size = 30)) +
+  stat_compare_means(paired = TRUE, method = "wilcox.test",label ="p.format", label.y.npc = "top", label.x = 2.2,size=7) +
+  stat_compare_means(label = "p.signif", method = "wilcox.test", paired = TRUE, label.x = 1.5,size=8)
+```
+
+
+GGarrange:
+
+```{r fig.fullwidth=TRUE }
+
+fig <- ggarrange(plot_m2_r, plot_gammaDelt_r,
+          labels = c("A", "B"), font.label = list(size = 30, color = "black", face = "bold"),
+          common.legend=F, legend = "none",
+          ncol = 1, nrow = 2)
+
+annotate_figure(fig,
+                #top = text_grob("MIXTURE vs CIBERSORT", color = "black", face = "bold", size = 20),
+                #bottom = text_grob("Data source: \n Riaz et al., 2017", color = "black",
+                #hjust = 1, x = 1, face = "italic", size = 14),
+                left = text_grob("Relative proportions", color = "black", rot = 90,size = 40)
+                #right = "I'm done, thanks :-)!",
+                #fig.lab = "Figure 3", fig.lab.face = "bold",size=14
+                )
+
+```
+
+
