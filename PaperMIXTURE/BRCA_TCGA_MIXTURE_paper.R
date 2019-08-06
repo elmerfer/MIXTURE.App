@@ -15,6 +15,8 @@ library(parallel)
 library(openxlsx)
 
 source('Utils/MIXTURE.DEBUG_V0.1.R')
+load("Data/LM22.RData")
+##Prueba
 ##change the directory to your own directory!!!
 #the BRCA RNAseq data can be downloaded from https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0
 brca <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
@@ -40,9 +42,9 @@ quantilize <- function(var, qs = c(0.25,0.5,0.75)){
 
 ##normalize brca counts
  dge <- DGEList(counts = brca$E)
- dge <- calcNormFactors(dge)
+ # dge <- calcNormFactors(dge)
  brca.norm <- brca
- brca.norm$E <- cpm(dge$counts)
+ brca.norm$E <- cpm(dge$counts) #library size normalization
 # 
  M.brca.n <- brca.norm$E
  sum(rownames(M.brca.n) %in% rownames(LM22))
