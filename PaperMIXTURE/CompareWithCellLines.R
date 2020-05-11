@@ -1,16 +1,18 @@
 library(openxlsx)
-source('~/Dropbox/IDEAS/cibersort/MIXTURE/Utils/MIXTURE.DEBUG_V0.1.R')
+##Pls verify directories
+source('Utils/MIXTURE.DEBUG_V0.1.R')
 #Build data set for cibersort web 
 ##change your path and build your cellline.rds file. See Supplementary Material
-cells <- readRDS("/home/elmer/Elmer/MIXTURE/celllines.rds")
+cells <- readRDS("Data/celllines.rds")
 
 dim(cells)
 
 ##get path to TIL10 signature file
 load("Data/LM22.RData")
 load("Data/TIL10.RData")
-
+colnames(cells$targets)
 M <- 2^cells$E #to run with MIXTURE and QUANTISEQ
+cn[1:5]
 cn <- colnames(cells$E)
 rownames(M) <- cells$genes$symbol
 # id <- c(0, seq(100,1000,100))
@@ -26,7 +28,7 @@ rownames(M) <- cells$genes$symbol
 ## RUN QUANTISEQ
 # library(immunedeconv)
 ## We modify "deconvolute_quantiseq.default" in order to return both normalized and unnormalized coeficients
-# source('~/Dropbox/IDEAS/cibersort/MIXTURE/QUANTISEQ.test.R')
+source('PaperMIXTURE/QUANTISEQ.test.R')
 # 
 
 #on LM22
@@ -40,11 +42,11 @@ rownames(M) <- cells$genes$symbol
  
 cells.ls <- MIXTURE(expressionMatrix = M, signatureMatrix =  LM22, functionMixture =  ls.rfe.abbas, useCores = 6L)
 cells.ls.TIL10 <- MIXTURE(expressionMatrix = M, signatureMatrix =  TIL10, functionMixture =  ls.rfe.abbas, useCores = 6L)
-
- 
- ##RLM
- cells.abis <- MIXTURE(expressionMatrix = M, signatureMatrix =  LM22, functionMixture =  rlm.abis, useCores = 1L)
- cells.abis.TIL10 <- MIXTURE(expressionMatrix = M, signatureMatrix =  TIL10, functionMixture =  rlm.abis, useCores = 1L)
+# 
+#  
+#  ##RLM
+  cells.abis <- MIXTURE(expressionMatrix = M, signatureMatrix =  LM22, functionMixture =  rlm.abis, useCores = 1L)
+  cells.abis.TIL10 <- MIXTURE(expressionMatrix = M, signatureMatrix =  TIL10, functionMixture =  rlm.abis, useCores = 1L)
 
  # saveRDS(out.quanti, file=paste("/home/elmer/Elmer/MIXTURE/CellQUANTISEQ_LM22.RDS",sep=""))
 #TIL10
@@ -58,17 +60,19 @@ mix <- LoadMixtureResultsFromExcel("/home/elmer/Elmer/MIXTURE/outputCellines(2).
 MIX.Til10 <- LoadMixtureResultsFromExcel("/home/elmer/Elmer/MIXTURE/outputCellines_TIL10.xlsx")#Results from MIXTUREpy
 
 #Load results from CIBERSORT
-cibA <- do.call(rbind, lapply(1:11, function(x){
-
-  ci <- read.xlsx(paste("/home/elmer/Elmer/MIXTURE/CIBERSORT.Output_Abs_Cell",x,".xlsx",sep=""))
-}))
-#Load results from CIBERSORT
-cibA.Til10 <- do.call(rbind, lapply(1:11, function(x){
-  ci <- read.xlsx(paste("/home/elmer/Elmer/MIXTURE/CIBERSORT.Output_Abs_TIL10_Cell",x,".xlsx",sep=""))
-}))
+# cibA <- do.call(rbind, lapply(1:11, function(x){
+# 
+#   ci <- read.xlsx(paste("/home/elmer/Elmer/MIXTURE/CIBERSORT.Output_Abs_Cell",x,".xlsx",sep=""))
+# }))
+# #Load results from CIBERSORT
+# cibA.Til10 <- do.call(rbind, lapply(1:11, function(x){
+#   ci <- read.xlsx(paste("/home/elmer/Elmer/MIXTURE/CIBERSORT.Output_Abs_TIL10_Cell",x,".xlsx",sep=""))
+# }))
 
 # saveRDS(cibA,file=paste("/home/elmer/Elmer/MIXTURE/cibA.LM22.RDS",sep=""))
+cibA <- readRDS(file=paste("/home/elmer/Elmer/MIXTURE/cibA.LM22.RDS",sep=""))
 # saveRDS(cibA.Til10,file=paste("/home/elmer/Elmer/MIXTURE/cibA.Til10.RDS",sep=""))
+cibA.Til10 <- readRDS(file=paste("/home/elmer/Elmer/MIXTURE/cibA.Til10.RDS",sep=""))
 par(mfrow=c(1,2))
 library(ggplot2)
 #LM22
@@ -94,7 +98,8 @@ df.lm22 <- data.frame(
 
 
 
-summary(df.lm22)
+
+
 library(stringr)
 ggplot(df.lm22, aes(Method, NumCels, fill = Method)) + geom_boxplot() + geom_jitter(,height = 0, width = 0.2)
 ggplot(df.lm22, aes(Method, TotalI, fill = Method))  + geom_violin(scale = "width") + geom_boxplot(width = 0.1) + theme_bw()
