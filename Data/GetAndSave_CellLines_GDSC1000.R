@@ -34,4 +34,4 @@ b.elist<- b.elist[which(!is.na(b.elist$genes$entrezid)),]
 #combine repeated entrezid expression
 b.elist<- avereps(x = b.elist, ID = b.elist$genes$entrezid)
 
-saveRDS(b.elist, file = "celllines.rds")
+saveRDS(b.elist, file = "Data/celllines.rds")
