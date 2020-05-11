@@ -27,12 +27,8 @@ load("Data/TIL10.RData")
 ##Prueba
 ##change the directory to your own directory!!!
 ##
-##DOWNLOAD THIS DATA SET TO GET PAM50 CONFIDENT CLASSIFICATION ####
-##
-#the BRCA RNAseq data can be downloaded from https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0
-# brca.cpms <- readRDS("/home/elmer/Dropbox/Doctorandos/DarioRocha/BRCA/processed_data/BRCA_rna.rds")
-# required for TNBC info and PBCMC PAM50 classification
-brca.cpms <- readRDS("Data/BRCA_rna.rds")
+
+brca.cpms <- readRDS("Data/brca.targets_rna.rds")
 TNBC <- apply(brca.cpms$targets[,c("er","pgr","her2")],1, FUN = function(x) all(x == "negative"))
 brca.cpms$targets$TNBC <- TNBC ##defining Triple Negative BRCA
 
