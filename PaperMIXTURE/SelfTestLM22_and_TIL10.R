@@ -1,4 +1,5 @@
 ##This is a DEBUG VERSION
+#date: 10/02/2020
 rm(list=ls())
 library(data.table)
 library(ComplexHeatmap)
@@ -7,6 +8,8 @@ library(ggplot2)
 library(circlize)
 library(dtangle)
 library(immunedeconv)
+library(gridExtra)
+library(grid)
 source('Utils/MIXTURE.DEBUG_V0.1.R')
 
 # source('~/Dropbox/IDEAS/cibersort/MIXTURE/Utils/my.quanTIseq.R')
@@ -25,13 +28,11 @@ load("Data/TIL10.RData")
 
 
 
-##BUILD smulated scenarios a, b and c ----
-##Scenario a)
+##BUILD smulated scenario 2 
+
+##YOU SHOULD UNCOMMENT THIS SECTION IF YOU WANT TO RE-GENERATE THE FILES
 
 
-
-
-# ##Scenario b)
 # set.seed(123)
 # betas.list <- lapply(1:1000, function(x, Mat, nrep) {
 #   ns <-  sample(2:nrep,1)
@@ -46,12 +47,11 @@ load("Data/TIL10.RData")
 # ## assigning to M.c matrix the simulated cell-types mixtures
 # M.pure <- do.call(cbind, lapply(betas.list, function(x) x$A))
 # 
-# 
+# SAVING FILE TO USE INTO CIBERSORT WEB SISTEM
 # write.table(M.pure, file="/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/M.pure.mix.xlsx", quote = FALSE, row.names = TRUE, sep="\t")
 # saveRDS(betas.list, file = "/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/betas.list.rds")
 # 
 # 
-# ##Scenario c)
 # set.seed(124)
 # betas.noise.list <- lapply(1:1000, function(x, Mat, nrep) {
 #   ns <-  sample(2:nrep,1)
@@ -93,13 +93,16 @@ load("Data/TIL10.RData")
 #   list(beta = betas, id = id,A = A)
 # }, Mat = data.matrix(TIL10), nrep = 6)
 
+# saveRDS(TIL10.betas.list, file = "Data/TIL10.betas.list.rds")
+TIL10.betas.list <- readRDS(file = "Data/TIL10.betas.list.rds")
+# 
+# saveRDS(TIL10.betas.noise.list, file = "Data/TIL10.betas.noise.list.rds")
+TIL10.betas.noise.list <- readRDS( file = "Data/TIL10.betas.noise.list.rds")
+
 TIL10.M.pure <- do.call(cbind, lapply(TIL10.betas.list, function(x) x$A)) 
 
 TIL10.M.pure.noise <- do.call(cbind, lapply(TIL10.betas.noise.list, function(x) x$A)) 
 
-# saveRDS(TIL10.betas.list, file = "Data/TIL10.betas.list.rds")
-# 
-# saveRDS(TIL10.betas.noise.list, file = "Data/TIL10.betas.noise.list.rds")
 
 # Save data to run CIBERSORT web
 # aux <- data.frame("Gene Symbol" = rownames(TIL10.M.pure),TIL10.M.pure)
@@ -124,7 +127,7 @@ out.mixture <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, function
 
 out.ls <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, functionMixture =  ls.rfe.abbas, useCores = 3L)
 
-out.dt <- dtangle(Y = log2(t(LM22)) , reference = log2(t(LM22)))
+# out.dt <- dtangle(Y = log2(t(LM22)) , reference = log2(t(LM22)))
 ##RLM
 out.abis <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, functionMixture =  rlm.abis, useCores = 1L)
 
@@ -136,6 +139,7 @@ out.quanti <-deconvolute_quantiseq.default(mix.mat = LM22,
                                            mRNAscale = FALSE, method = "lsei", btotalcells = FALSE, rmgenes = "unassigned")
 # out.abis.ncrfe <- MIXTURE(expressionMatrix = M.c, signatureMatrix =  LM22, functionMixture =  nc.rfe.rlm, useCores = 1L)
 
+out.epic <- EPIC::EPIC(bulk = LM22, reference = list(refProfiles = LM22, sigGenes = rownames(LM22)))
 
 ##upload CIBERSORT proportions from CIBERSORT site for scaneario a
 cib.site <- ReadCibersortWebResults(file="Data/LM22.Pure.CIBERSORT.Output_Job1.csv", type = "csv")
@@ -154,6 +158,8 @@ TIL10.out.quanti <-deconvolute_quantiseq.default(mix.mat = TIL10,
                                                  signame = "TIL10", 
                                                  tumor = FALSE, 
                                                  mRNAscale = FALSE, method = "lsei", btotalcells = FALSE, rmgenes = "unassigned")
+TIL10.out.epic <- EPIC::EPIC(bulk = TIL10, reference = list(refProfiles = TIL10, sigGenes = rownames(TIL10)))
+
 TIL10.cib.web <-  ReadCibersortWebResults("Data/CIBERSORT.Output_TIL10.csv",type = "csv", nct = 10)
 
 ##Amount of estimated cell types LM22
@@ -204,10 +210,10 @@ ls.fpe[ls.fpe == 0] <- NA
 c(min(as.numeric(ls.fpe),na.rm=T),max(as.numeric(ls.fpe),na.rm=T))
 
 ##fpe DTANGLE
-dt.fpe <- out.dt$estimates
-diag(dt.fpe) <- NA
-dt.fpe[dt.fpe == 0] <- NA
-c(min(as.numeric(dt.fpe),na.rm=T),max(as.numeric(dt.fpe),na.rm=T))
+# dt.fpe <- out.dt$estimates
+# diag(dt.fpe) <- NA
+# dt.fpe[dt.fpe == 0] <- NA
+# c(min(as.numeric(dt.fpe),na.rm=T),max(as.numeric(dt.fpe),na.rm=T))
 
 ##fpe in ABIS
 df.abis <- GetMixture(out.abis)
@@ -271,7 +277,7 @@ TIL10.M.abis2 <- TIL10.M.abis
 TIL10.M.abis2[TIL10.M.abis2 <= 0] <- NA
 
 ##FULL Figure TIL10 estimations
-annot <- HeatmapAnnotation(text = anno_text(colnames(TIL10), rot = 45, just = "left", offset = unit(2, "mm")))
+annot <- HeatmapAnnotation(text = anno_text(colnames(TIL10), rot = 45, just = "left", location = unit(2, "mm")))
 # FULL COMPLETE FIGURE 1
 # hp <- Heatmap(CorrLM22, cluster_rows = FALSE, show_column_names = FALSE, show_row_names = FALSE,
 #         cluster_columns = FALSE, column_title = "Cor LM22",name = "Cor LM22",col = c("blue", "red"),
@@ -291,10 +297,15 @@ TIL10.hp <- Heatmap(TIL10.M.abbas, cluster_rows = FALSE, show_column_names = FAL
           col = c("blue","red"),show_heatmap_legend = FALSE, show_column_names = FALSE) +
   Heatmap(TIL10.M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",
           col = c("red", "blue"),show_heatmap_legend = FALSE, show_column_names = FALSE)
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/SelfTestTIL10.eps", paper = "a4", horizontal = FALSE, width = 800)##we can manage better
-print(TIL10.hp)
+# setEPS()
+# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/SelfTestTIL10.eps", paper = "a4", horizontal = FALSE, width = 800)##we can manage better
+# print(TIL10.hp)
+# dev.off()
+
+pdf("/home/elmer/Dropbox/IDEAS/cibersort/GenomeR/Figuras/FigurasFinales/SelfTestTIL10.pdf", paper = "a4", width = 8, height = 3)##we can manage better
+ print(TIL10.hp)
 dev.off()
+
 
 ##Heatmaps for each model
 # setEPS()
@@ -329,7 +340,7 @@ dev.off()
 #          column_title = "QUANTI",name = "DTANGLE",col = c("blue", "red")) 
 #  dev.off()
 # 
-setEPS()
+# setEPS()
 
 M.abis2 <- M.abis
 M.abis2[M.abis2 < 0] <- NA
@@ -341,7 +352,7 @@ diag(M.abis2)  <- max(M.abis2, na.rm=T )
 # dev.off()
 
 summary(cbind(CIBERSORT=as.numeric(M.cib.site), MIXTURE = as.numeric(M.nu.robust), ABBAS= as.numeric(M.abbas), 
-              DTANGLE = as.numeric(M.dt), ABIS=as.numeric(M.abis), QUANTI = as.numeric(M.quanti)))
+               ABIS=as.numeric(M.abis), QUANTI = as.numeric(M.quanti)))
 # CIBERSORT         MIXTURE        ABBAS           DTANGLE               ABIS                QUANTI      
 # Min.   :0.0001   Min.   :1     Min.   :0.0000   Min.   :0.0005039   Min.   :-0.2063857   Min.   :0.0044  
 # 1st Qu.:0.0001   1st Qu.:1     1st Qu.:0.0006   1st Qu.:0.0024606   1st Qu.:-0.0027461   1st Qu.:0.8361  
@@ -375,10 +386,10 @@ diag(M.abbas.aux2) <- 0.04
 # dev.off()
 
 ##multicolinearity for DTANGLE
-M.dt.aux <- M.dt
-diag(M.dt.aux) <- NA
-summary(as.numeric(M.dt.aux))
-diag(M.dt.aux) <- max(as.numeric(M.dt.aux), na.rm=T)
+# M.dt.aux <- M.dt
+# diag(M.dt.aux) <- NA
+# summary(as.numeric(M.dt.aux))
+# diag(M.dt.aux) <- max(as.numeric(M.dt.aux), na.rm=T)
 
 # setEPS()
 # postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/DTANGLEColinearity.eps")##we can manage better
@@ -414,29 +425,21 @@ Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = FALSE, cluster_column
         col = c("blue","red"),show_heatmap_legend = FALSE, show_column_names = FALSE) +
   Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",
           col = c("red", "blue"),show_heatmap_legend = F, show_column_names = FALSE)
-#  setEPS()
-#  postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/SelfTestLM22.eps", paper = "a4", horizontal = FALSE, width = 800)##we can manage better
+
+pdf("/home/elmer/Dropbox/IDEAS/cibersort/GenomeR/Figuras/FigurasFinales/SelfTestLM22.pdf", paper = "a4",  width = 8, height = 3)##we can manage better
   print(hp)
-#  dev.off()
-#  
+dev.off()
+#  Correlation
+H1 <- Heatmap(CorrLM22, cluster_rows = FALSE, show_column_names = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "Cor LM22",name = "Cor LM22",col = c("blue", "red"))
+H2 <- Heatmap(CorrTIL10, cluster_rows = FALSE, show_column_names = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "Cor TIL10",name = "Cor TIL10",col = c("blue", "red")) 
 
-
-  setEPS()
-  postscript("BoxplotsEstimationNumber.eps")
-  grid.arrange(hp, TIL10.hp, nrow = 2)
-  dev.off()
-  
+ 
+pdf("/home/elmer/Dropbox/IDEAS/cibersort/GenomeR/Figuras/FigurasFinales/ColinearityLM22.pdf", paper = "a4r", width = 4, height = 3)##we can manage better
+print(H1)
+dev.off()
 # 
+pdf("/home/elmer/Dropbox/IDEAS/cibersort/GenomeR/Figuras/FigurasFinales/ColinearityTIL10.pdf", paper = "a4r", width = 4, height = 3)##we can manage better
+print(H2)
+dev.off()
 # 
-# pdf("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/ColinearityLM22.pdf", paper = "a4r", width = 12)##we can manage better
-# print(hp)
-# dev.off()
-# 
-# jpeg("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/Colinearity.jpg", width = 600)##we can manage better
-# print(hp)
-# dev.off()
-# 
-# Heatmap(CorrLM22, cluster_rows = FALSE, show_column_names = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "Cor LM22",name = "Cor LM22",col = c("blue", "red"),top_annotation = annot, top_annotation_height = unit(5, "cm")) +
-# Heatmap(M.cib.site, cluster_rows = FALSE, show_row_names = FALSE, cluster_columns = FALSE, column_title = "CIBERSORT",name = "CIBERSORT",col = c("blue","red")) +
-#   Heatmap(M.nu.robust, cluster_rows = FALSE, show_row_names = TRUE, cluster_columns = FALSE, column_title = "MIXTURE",name = "MIXTURE",col = c("red", "blue")) 
 
