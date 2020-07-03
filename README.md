@@ -45,22 +45,45 @@ Download the file LM22.RData and install it in the same directory (i.e ../myFavo
 
 This example tends to estimate the same pure cell-types from LM22 signature matrix from [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
 ```
-source('~/myFavorite/MIXTURE.R')
-##Load signature matrix
-load("~/myFavorite/LM22.RData")
-mix.test <- MIXTURE(expressionMatrix = LM22,          #N x ncol(signatureMatrix) gene expresion matrix to evaluate 
-                                                      ##rownames(M) should be the GeneSymbols
-              signatureMatrix = LM22,                 #the gene signature matrix (W) such that M = W*betas' 
-                                                      #(i.e the LM22 from Newman et al)
-              iter = 1000,                            #iterations for the statistical test (null distribution)
-              functionMixture = nu.svm.robust.RFE,    #cibersort, nu.svm.robust.rfe, ls.rfe.abbas, 
-              useCores = 10L,                         #cores for parallel processing/ if using windows set to 1
-              verbose = TRUE,                         #TRUE or FALSE messages  
-              nullDist = "PopulationBased",           #"none" or "PopulationBased" if the statistical test should
-                                                      #be performed
-              fileSave = "MIXTURE_FILE_LM22.xlsx")    #EXCEL file name to stare the results 
+##PLS VERIFY YOUR CURRENT DIRECTORY. IT SHOULD BE THE ONE WHERE YOU DOWNLOAD THE FILES. 
+## something like
+##My favorite dir/Utils
+##My favorite dir/Data
 
-save(mix.test, file = "MIXTURE_FILE_LM22.RData") #save full list as an RData object.
+library(openxlsx)
+load("Data/LM22.RData")
+
+
+
+source("Utils/MIXTURE.DEBUG_V0.1.R")
+
+##Choose you sample file
+sgm <- read.xlsx("Data/BRCA.subsample.xlsx")
+## Verify if duplicated gene symbols
+if( any(duplicated(sgm[,1]))){
+  m <- avereps(sgm[,-1], ID=  sgm[,1])
+  rownames(m ) <- unique(sgm[,1])
+  sgm <- m
+}else{
+  rownames(sgm ) <- sgm[,1]
+  sgm <- sgm[,-1]  
+}
+### multicore
+## Verify your available cpu cores
+num.cores <- 3L #if winfdows, only one is possible
+##
+mix.test <- MIXTURE(expressionMatrix = sgm,      #N x ncol(signatureMatrix) gene expresion matrix to evaluate 
+                                                    ##rownames(M) should be the GeneSymbols
+              signatureMatrix = LM22,               #the gene signature matrix (W) such that M = W*betas' (i.e the LM22 from Newman et al)
+              iter = 0L,                            # amount of iteration in the statistical test (null distribution)
+              functionMixture = nu.svm.robust.RFE,   #cibersort, nu.svm.optim.rfe, nnls = the cibersort model, 
+                                                    ##nu-svm Recursive Feature Extraction and non negative lest squares
+              useCores = num.cores,                        #cores for parallel processing
+              verbose = TRUE,                       #TRUE or FALSE mesages  
+              nullDist = "PopulationBased",                    #"none" or "PopulationBased", if the statistical test should be performed
+              fileSave = "TETS_MIXTURE_RESULTS.xlsx")       #EXCEL file name to stare the results 
+
+save(mix.test, file = "TEST_MIXTURE_FILE_LM22.RData") #save full lista as an RData object.
 
 ```
 
