@@ -10,10 +10,12 @@
 library(openxlsx)
 load("Data/LM22.RData")
 
+##PLS VERIFY YOUR CURRENT DIRECTORY. IT SHOULD BE THE ONE WHERE YOU DOWNLOAD THE FILES.
+
 source("Utils/MIXTURE.DEBUG_V0.1.R")
 
 ##Choose you sample file
-# sgm <- read.xlsx("/Data/BRCA.subsample.xlsx")
+sgm <- read.xlsx("Data/BRCA.subsample.xlsx")
 ## Verify if duplicated gene symbols
 if( any(duplicated(sgm[,1]))){
   m <- avereps(sgm[,-1], ID=  sgm[,1])
@@ -23,14 +25,17 @@ if( any(duplicated(sgm[,1]))){
   rownames(sgm ) <- sgm[,1]
   sgm <- sgm[,-1]  
 }
-
+### multicore
+## Verify your available cpu cores
+num.cores <- 3L #if winfdows, only one is possible
+##
 mix.test <- MIXTURE(expressionMatrix = sgm,      #N x ncol(signatureMatrix) gene expresion matrix to evaluate 
                                                     ##rownames(M) should be the GeneSymbols
               signatureMatrix = LM22,               #the gene signature matrix (W) such that M = W*betas' (i.e the LM22 from Newman et al)
               iter = 0L,                            # amount of iteration in the statistical test (null distribution)
               functionMixture = nu.svm.robust.RFE,   #cibersort, nu.svm.optim.rfe, nnls = the cibersort model, 
                                                     ##nu-svm Recursive Feature Extraction and non negative lest squares
-              useCores = 10L,                        #cores for parallel processing
+              useCores = num.cores,                        #cores for parallel processing
               verbose = TRUE,                       #TRUE or FALSE mesages  
               nullDist = "PopulationBased",                    #"none" or "PopulationBased", if the statistical test should be performed
               fileSave = "TETS_MIXTURE_RESULTS.xlsx")       #EXCEL file name to stare the results 
