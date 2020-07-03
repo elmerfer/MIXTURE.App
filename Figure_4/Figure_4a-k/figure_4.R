@@ -647,6 +647,17 @@ p <- ggbarplot(data_skcm_plots, x = "ITH", y = "T.cells.CD4.memory.resting", tit
 ggpar(p, legend="none")
 
 
+#### CYT
+
+names(data_skcm_plots)[24] <- "Cytolitic.Score"
+
+my_comparisons <- list(c("Low","Intermediate"),c("Low", "High"),c("Intermediate","High"))
+p <- ggbarplot(data_skcm_plots, x = "ITH", y = "Cytolitic.Score", title = "ITH",
+               color = "ITH", line.color = "gray", line.size = 1, xlab = F,ylab = "Cytolitic Score",
+               palette = c(col_groups[1],col_groups[2],col_groups[3]),short.panel.labs = T,combine=F, add = c("mean_sd","jitter"))+theme(text = element_text(size = 20),plot.title = element_text(hjust = 0.5))  +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "wilcox.test", paired = FALSE,size=8)
+ggpar(p, legend="none")
+
 
 ### Cytolytic Score
 
@@ -1017,6 +1028,17 @@ ggpar(p, legend="none")
 
 p <- ggbarplot(data_mixture_coad, x = "MSI", y = "Mast_cells_resting", title = "MSI",
                color = "MSI", line.color = "gray", line.size = 1, xlab = F,ylab = "Mast cells resting proportion",
+               palette = c("blue","red"),short.panel.labs = T,combine=F, add = c("mean_se","jitter")) + theme(text = element_text(size = 20),plot.title = element_text(hjust = 0.5))  +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "wilcox", paired = FALSE,size=8)
+ggpar(p, legend="none")
+
+
+### CYT
+
+names(data_mixture_coad)[37] <- "Cytolitic.Score"
+
+p <- ggbarplot(data_mixture_coad, x = "MSI", y = "Cytolitic.Score", title = "MSI",
+               color = "MSI", line.color = "gray", line.size = 1, xlab = F,ylab = "Cytolitic Score",
                palette = c("blue","red"),short.panel.labs = T,combine=F, add = c("mean_se","jitter")) + theme(text = element_text(size = 20),plot.title = element_text(hjust = 0.5))  +
   stat_compare_means(comparisons = my_comparisons, label = "p.signif", method = "wilcox", paired = FALSE,size=8)
 ggpar(p, legend="none")
