@@ -28,14 +28,17 @@ options(shiny.maxRequestSize=30*1024^2)
 
 shinyServer( function(input, output, session) {
 ##INITIATLIZATION ####
+  load("Data/LM22.RData")
+  load("Data/TIL10.RData")
+  require(parallel)
   data <- reactiveValues( mixture.results = NULL , file2save = NULL)
   signature <- reactiveValues( Mat = NULL)
   dataset <- reactiveValues(sampleMat = NULL, filepath = NULL)
   
 #   .Tabla <- NULL
   observeEvent(input$signature,{
-    signature$Mat <- switch(input$signature,
-                            LM22 = LM22,
+      signature$Mat <- switch(input$signature,
+                              LM22 = LM22,
                             TIL10 = TIL10)
   })
 #   ######LOAD FUNCTIONS ###################
