@@ -7,12 +7,13 @@
 #
 
 library(shiny)
-library(shinyjs)
+# library(shinyjs)
 
 library(DT)
 library(ggplot2)
 library(gplots)
 library(RColorBrewer)
+library(parallel)
 
 
 source("Utils/MIXTURE.DEBUG_V0.1.R")
@@ -22,8 +23,8 @@ options(shiny.maxRequestSize=30*1024^2)
 # .num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
 
 
-load("Data/LM22.RData")
-sigmat <- LM22
+# load("Data/LM22.RData")
+# sigmat <- LM22
 
 shinyServer( function(input, output, session) {
 ##INITIATLIZATION ####
@@ -32,6 +33,11 @@ shinyServer( function(input, output, session) {
   dataset <- reactiveValues(sampleMat = NULL, filepath = NULL)
   
 #   .Tabla <- NULL
+  observeEvent(input$signature,{
+    signature$Mat <- switch(input$signature,
+                            LM22 = LM22,
+                            TIL10 = TIL10)
+  })
 #   ######LOAD FUNCTIONS ###################
 
   observeEvent(input$mixResults, {
@@ -61,16 +67,18 @@ shinyServer( function(input, output, session) {
     }else{
       dataset$filepath <- input$GeneExpr$datapath
       dataset$sampleMat <- read.xlsx(input$GeneExpr$datapath)
+      rownames(dataset$sampleMat) <- dataset$sampleMat[,1]
       ##verify rownames 
       if( any(duplicated(dataset$sampleMat[,1]))) {
         ##hay duplicados
         m <- avereps(dataset$sampleMat[,-1] , ID = dataset$sampleMat[,1])
         dataset$sampleMat <-m
-        rownames(dataset$sampleMat) <- unique(dataset$sampleMat[,1])
+        # rownames(dataset$sampleMat) <- unique(dataset$sampleMat[,1])
             
       }else{
+        
         dataset$sampleMat <- dataset$sampleMat[,-1]
-        rownames(dataset$sampleMat) <- dataset$sampleMat[,1]
+        
       }
       
       data$file2save <- str_replace(dataset$name,".xlsx","MIXTURE_RES.xlsx")
@@ -143,7 +151,8 @@ shinyServer( function(input, output, session) {
     if(is.null(signature$Mat)){
       sign.m <- "LM22"
     }else{
-      sign.m <- isolate(input$sigMat$name)
+      # sign.m <- isolate(input$sigMat$name)
+      sign.m <- isolate(input$signature)
     }
     cat("Number of cores: :",nc, " \nPermutations :" ,it, 
         "\nUsed Genes : ", ngenes, " / ",  n.sample.genes,
@@ -158,7 +167,7 @@ shinyServer( function(input, output, session) {
      df <- data$mixture.results$Subjects$MIXprop
      df[df==0] <- NA
      datatable(df) %>% formatRound(1:22, 3)
-   },options = list(pageLength = 25))
+   },options = list(pageLength = 25, scrollX = TRUE))
   
    output$table.absolute <- DT::renderDataTable({
      if(is.null(data$mixture.results)) return()
@@ -182,6 +191,7 @@ shinyServer( function(input, output, session) {
          title = "P values not available",
          "You should RUN MIXTURE with permutations"
        ))
+       return()
      }
      # df <- cbind(data$mixture.results$Subjects$ACCmetrix, pVal = data$mixture.results$p.values)
      df <- data$mixture.results$p.values
@@ -215,14 +225,17 @@ shinyServer( function(input, output, session) {
   output$bars <- renderPlot({
     if(is.null(data$mixture.results)) return()
     m.mix <- data$mixture.results$Subjects$MIXprop
+    print(ncol(signature$Mat))
     df.test <- data.frame(b = as.vector(t(m.mix)), 
                           ct = rep(colnames(m.mix),nrow(m.mix)),
-                          sbj = factor(rep(rownames(m.mix),each=22), levels = rownames(m.mix))) 
+                          sbj = factor(rep(rownames(m.mix),each=ncol(signature$Mat)), levels = rownames(m.mix))) 
     col.cel.types <- c("chocolate1", "brown4", "black",
                        "tan1","green4", "green2", "lawngreen", "olivedrab3", "olivedrab", "chartreuse4",
                        "goldenrod","gold4","yellow","violetred","orangered1","red",
                        "plum4","plum","navy","mediumblue","cyan",
                        "grey28")
+    col.cel.types <- col.cel.types[1:ncol(signature$Mat)]
+    
     colores <- data.frame(CT=as.character(unique(df.test$ct)), Colores=col.cel.types)
     rownames(colores) <- colores[,1]
     
