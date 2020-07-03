@@ -105,6 +105,9 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 * **Elmer Andrés Fernández** - *Initial work* - [Profile](https://www.researchgate.net/profile/Elmer_Fernandez) - [CIDIE]- [CONICET](http://www.conicet.gov.ar) - [UCC](http://www.ucc.edu.ar)
 
+## How to cite
+
+MIXTURE: an improved algorithm for immune tumor microenvironment estimation based on gene expression data. Elmer A. Fernández,  Yamil D. Mahmoud, Florencia Veigas, Darío Rocha,  Mónica Balzarini,  Hugo D. Lujan,  Gabriel A. Rabinovich,  M. Romina Girotti doi: https://doi.org/10.1101/726562
 
 ## License
 
