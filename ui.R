@@ -6,22 +6,22 @@
 #
 
 library(shiny)
-library(shinyjs)
+# library(shinyjs)
 
-library(parallel)
+
 library(DT)
 #.num.cores <- detectCores(all.tests = FALSE, logical = TRUE)
 # sigmat <- LM22
 
-navbarPage("MIXTURE",
+navbarPage( tags$img(src = "Logo_B_1.pdf.png", height = "30" ),#"MIXTURE",
            tabPanel("Run",
                     fluidRow(
-                      column(4, wellPanel( h4("Files"),helpText("Signature Matrix is LM22 from Newman et al."),
+                      column(4, wellPanel( h4("Files"),#helpText("Signature Matrix is LM22 from Newman et al."),
                                            # fileInput('sigMat', strong('Choose Signature Matrix (optional):'), multiple = FALSE,
                                            #             accept = c('Excel', ".xlsx"), placeholder = "LM22 (Newman et al)"),
+                                           radioButtons("signature","Choose Molecular Signature",c("LM22","TIL10")),
                                            
-                                           
-                                           fileInput('GeneExpr', strong('Choose gene expression file:'), multiple = FALSE,
+                                           fileInput('GeneExpr', strong('Choose gene expression file (Only xlsx):'), multiple = FALSE,
                                                      accept = c('Excel', "xlsx") ),
                                            tags$hr(),
                                            fileInput("mixResults", strong('Load MIXTURE result file (EXCEL)'), multiple = FALSE,

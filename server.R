@@ -28,15 +28,16 @@ options(shiny.maxRequestSize=30*1024^2)
 
 shinyServer( function(input, output, session) {
 ##INITIATLIZATION ####
-  load("Data/LM22.RData")
-  load("Data/TIL10.RData")
-  require(parallel)
+  
+  
   data <- reactiveValues( mixture.results = NULL , file2save = NULL)
   signature <- reactiveValues( Mat = NULL)
   dataset <- reactiveValues(sampleMat = NULL, filepath = NULL)
   
 #   .Tabla <- NULL
   observeEvent(input$signature,{
+    load("Data/LM22.RData")
+    load("Data/TIL10.RData")
       signature$Mat <- switch(input$signature,
                               LM22 = LM22,
                             TIL10 = TIL10)
@@ -66,6 +67,7 @@ shinyServer( function(input, output, session) {
         title = "FILE ERROR",
         "Please choose an EXCEL file"
       ))
+      
       return(NULL)
     }else{
       dataset$filepath <- input$GeneExpr$datapath
@@ -93,9 +95,9 @@ shinyServer( function(input, output, session) {
   
   
   #   ###### CORE DECONVOLUTION #########
-  ##I wnat to called them once i set the go button
+  ##I want to called them once i set the go button
   observeEvent(input$goButton, {
-    # req(dataset())
+    require(parallel)
     if( is.null(dataset$sampleMat)){
       showModal(modalDialog(
         title = "ERROR",
@@ -105,7 +107,10 @@ shinyServer( function(input, output, session) {
     }
     
     
-
+    if(is.null(LM22)){
+      load("Data/LM22.RData")
+      load("Data/TIL10.RData")
+    }
      # this would activate this render function
     if( is.null(signature$Mat) ){
       sigmat <- LM22
