@@ -30,13 +30,8 @@ The current "functional like" version of the software requires the following lib
 * [openxlsx](https://cran.r-project.org/web/packages/openxlsx/index.html)
 * [strinr](https://cran.r-project.org/web/packages/stringr/)
 
-### Installing
-* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
-Download the file MIXTURE.R and install it in your favorite directory (i.e ../myFavorite/MIXTURE.R)
-Download the file LM22.RData and install it in the same directory (i.e ../myFavorite/LM22.RData) [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
-
-## Getting Started, Instlation and User Guide online instrucctions
+## Getting Started, Instllation and User Guide online instrucctions
 
 Here you will find information regarding how to use the Shiny appplication as well as the comman line option. Please check it to see how to prepare your data file.
 
