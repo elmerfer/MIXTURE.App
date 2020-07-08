@@ -28,7 +28,7 @@ The current "functional like" version of the software requires the following lib
 * [plyr](https://cran.r-project.org/web/packages/plyr/index.html)
 * [abind](https://cran.r-project.org/web/packages/abind/index.html)
 * [openxlsx](https://cran.r-project.org/web/packages/openxlsx/index.html)
-* [strinr](https://cran.r-project.org/web/packages/stringr/)
+* [stringr](https://cran.r-project.org/web/packages/stringr/)
 
 
 ## Getting Started, Instllation and User Guide online instrucctions
