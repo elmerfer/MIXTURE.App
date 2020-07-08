@@ -42,7 +42,7 @@ Here you will find information regarding how to use the Shiny appplication as we
 
 * [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
-This example tends to estimate the same pure cell-types from LM22 signature matrix from [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
+This example tends to estimate the cell-types present in LM22 signature matrix from [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html) on some BRCA TCGA RNAseq samples
 ```
 ##PLS VERIFY YOUR CURRENT DIRECTORY. IT SHOULD BE THE ONE WHERE YOU DOWNLOAD THE FILES. 
 ## something like
