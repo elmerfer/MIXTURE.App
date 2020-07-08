@@ -94,7 +94,7 @@ Download the file BRCA_TCGA_MIXTURE_paper.R and open it. Follow the code. You wi
 The  TCGA BRCA data ready to use by the BRCA_TCGA_MIXTURE_paper.R script can be downloaded from [here](https://www.dropbox.com/s/zki1gkx5mq1quah/BRCA_rna.rds?dl=0)
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://github.com/elmerfer/MIXTURE.App/blob/master/Contributing.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 
 ## Authors
