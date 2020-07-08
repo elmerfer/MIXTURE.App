@@ -12,11 +12,6 @@ The RUN_MIXTURE code was tested on Linux, Windows and Mac. On windows only one C
 
 # New! [MIXTURE in Python](https://github.com/MsMatias/MixturePy)
 
-## Getting Started
-
-* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -41,8 +36,14 @@ The current "functional like" version of the software requires the following lib
 Download the file MIXTURE.R and install it in your favorite directory (i.e ../myFavorite/MIXTURE.R)
 Download the file LM22.RData and install it in the same directory (i.e ../myFavorite/LM22.RData) [Newman et al.](http://www.nature.com/nmeth/journal/v12/n5/abs/nmeth.3337.html)
 
+## Getting Started, Instlation and User Guide online instrucctions
 
-## Running MIXTURE
+Here you will find information regarding how to use the Shiny appplication as well as the comman line option. Please check it to see how to prepare your data file.
+
+* [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
+
+
+## Running MIXTURE Shiny app, web Shiny app and command line
 
 * [User Guide](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
