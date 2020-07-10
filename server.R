@@ -235,7 +235,7 @@ shinyServer( function(input, output, session) {
     m.mix <- data$mixture.results$Subjects$MIXprop
     print(ncol(signature$Mat))
     df.test <- data.frame(b = as.vector(t(m.mix)), 
-                          ct = rep(colnames(m.mix),nrow(m.mix)),
+                          ct = factor(rep(colnames(m.mix),nrow(m.mix))),
                           sbj = factor(rep(rownames(m.mix),each=ncol(signature$Mat)), levels = rownames(m.mix))) 
     col.cel.types <- c("chocolate1", "brown4", "black",
                        "tan1","green4", "green2", "lawngreen", "olivedrab3", "olivedrab", "chartreuse4",

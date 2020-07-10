@@ -5,3 +5,6 @@ library(parallel)
 library(ggplot2)
 library(openxlsx)
 .num.cores <- parallel::detectCores(all.tests = FALSE, logical = TRUE)
+ if( toupper(Sys.info()["sysname"]) == "WINDOWS"){
+   .num.cores <- 1   
+ }
