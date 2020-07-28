@@ -1,4 +1,4 @@
-# MIXTURE
+# MIXTURE(https://github.com/elmerfer/MIXTURE.App/blob/master/www/LOGO_B.pdf.png)
 
 A v-SVR based noise constrained Recursive Feature Extraction algorithm for robust deconvolution of cell-types mixture from molecular signatures
 
