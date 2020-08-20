@@ -13,6 +13,8 @@ The RUN_MIXTURE code was tested on Linux, Windows and Mac. On windows only one C
 # New! [MIXTURE in Python](https://github.com/MsMatias/MixturePy)
 # New! [MIXTURE as an R library](https://github.com/elmerfer/MIXTURE)
 
+## [Test our Shiny app](https://cidie-conicet-ucc.shinyapps.io/mixture/)
+
 
 ### Prerequisites
 
