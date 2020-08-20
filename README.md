@@ -11,11 +11,12 @@ The MIXTURE shiny App has been only tested on Linux.
 The RUN_MIXTURE code was tested on Linux, Windows and Mac. On windows only one CPU core is allowed.
 
 # New! [MIXTURE in Python](https://github.com/MsMatias/MixturePy)
+# New! [MIXTURE as an R library](https://github.com/elmerfer/MIXTURE)
 
 
 ### Prerequisites
 
-The current "functional like" version of the software requires the following libraries
+The current "functional like" version of the software requires the following libraries. (we recommend to use the [R library](https://github.com/elmerfer/MIXTURE) version)
 
 * [data.table](https://cran.r-project.org/web/packages/data.table/)
 * [ComplexHeatmap](https://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)
