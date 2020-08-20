@@ -13,7 +13,11 @@ The RUN_MIXTURE code was tested on Linux, Windows and Mac. On windows only one C
 # New! [MIXTURE in Python](https://github.com/MsMatias/MixturePy)
 # New! [MIXTURE as an R library](https://github.com/elmerfer/MIXTURE)
 
-## [Test our Shiny app](https://cidie-conicet-ucc.shinyapps.io/mixture/)
+## Test our Shiny app
+You may test our shiny app on the free shiny server 
+* You may use the following Excel [file](https://github.com/elmerfer/MIXTURE.App/blob/master/Data/BRCA.subsample.xlsx). Download it in your computer
+* [Launch MIXTURE Shiny web app](https://cidie-conicet-ucc.shinyapps.io/mixture/)
+* [How to use presentation](https://docs.google.com/presentation/d/1lv8YGpmyuf9n9UUKAm5GavVHrqdSYf9m1UrzU_a0sK8/edit?usp=sharing)
 
 
 ### Prerequisites
