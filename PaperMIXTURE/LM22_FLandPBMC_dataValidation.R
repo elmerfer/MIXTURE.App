@@ -3,6 +3,73 @@ rm(list=ls())
 library(dtangle)
 library(immunedeconv)
 source('Utils/MIXTURE.DEBUG_V0.1.R')
+source('Utils/dm_utils.R')
+
+ROCAnalisis <- function(df.ba){
+  res <- do.call(rbind,lapply(unique(df.ba$Method), function(x){
+    test <- subset(df.ba, Method == x)
+    ROCeval(True = factor(test$betasim>0, levels=c(TRUE,FALSE)), 
+            Predicted  = factor(test$betahat>0, levels=c(TRUE,FALSE)))$Stats
+  }))
+  rownames(res) <- unique(df.ba$Method)
+  return(data.frame(res))
+}
+
+setbetacol <- function(df){
+  df$beta <- ifelse(df$betasim >0, ">0","=0")
+  return(df[,order(colnames(df))])
+}
+
+BA.plot <- function(df, title = NULL, xlab = FALSE, plot=FALSE, scale = NULL){
+  df.summary <- ddply(df, .(Method), summarise, mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T), 
+                      min= min(betahat,na.rm=T), max = max(betahat,na.rm=T), cor = cor(betahat, betasim))
+  qq <-c(0.1,NA, 0.8*max(df$betasim))
+  qq[2] <- qq[1]+ (qq[3]-qq[1])/2
+  qq <- round(qq,2)
+  p <- ggplot(df, aes(betasim, difs)) + 
+    geom_point(size =0.7,aes(colour = CT)) + 
+    geom_hline(yintercept = 0, colour = "blue",linetype = "dotted") +
+    geom_hline(data=df.summary,aes(yintercept=round(mean,3)), color = "red", linetype = "solid") +
+    geom_hline(data=df.summary,aes(yintercept=round(mean+2*sd,3)), color = "red", linetype = "dashed") + 
+    geom_hline(data=df.summary,aes(yintercept=round(mean-2*sd,3)), color = "red", linetype = "dashed") +
+    geom_smooth(aes(betasim, difs), data=subset(df,betasim>0)) +  scale_x_continuous(
+      breaks = qq)+ theme_bw() + theme(axis.text.x = element_text(size=9),axis.text.y = element_text(size=9), legend.position = "none")+
+    ylim(-.45, 0.6)
+  if(!is.null(scale)) p <- p + scale
+  if(!is.null(title)) p <- p + ggtitle(title)
+  if(xlab) {
+    p <- p + labs( x = "Simulated coefficients.",y = "Error")
+  }else p <- p + labs( x = "",y = "Error")
+  p <-  p +    facet_wrap(~Method, nrow = 1)
+  if(plot) print(p)
+  return(p)
+}
+
+Cor.plot <- function(df, title = NULL, xlab = FALSE, plot=FALSE, scale=NULL){
+  df.summary <- ddply(df, .(Method), summarise, mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T), 
+                      min= min(betahat,na.rm=T), max = max(betahat,na.rm=T), cor = cor(betahat, betasim))
+  qq <-c(0.1,NA, 0.8*max(df$betasim))
+  qq[2] <- qq[1]+ (qq[3]-qq[1])/2
+  qq <- round(qq,2)
+  
+  p <- ggplot(df, aes(betasim, betahat)) + 
+    geom_point(size =0.7, aes(colour = CT)) + 
+    geom_abline(intercept = 0, slope = 1, colour = "red") +
+    geom_smooth(method = "lm") + scale_x_continuous(
+      breaks = qq)+ theme_bw() + theme(axis.text.x = element_text(size=9),axis.text.y = element_text(size=9), legend.position = "none")
+  
+  if(!is.null(scale)) p <- p +  scale
+  
+  if(!is.null(title)) p <- p + ggtitle(title)
+  if(xlab) {
+    p <- p + labs( x = "Simulated coefficients.",y = "Est. coeffs")
+  }else p <- p + labs( x = "",y = "Est. coeffs")
+  p <-  p +    facet_wrap(~Method, nrow = 1)
+  
+  if(plot) print(p)
+  return(p)
+}
+
 ##since FL only contains B, CD8 and CD4 cells, we merge (sum) the proportions of such cell according to Newman et al.
 cell.types.names11 <- c("B","B","PC","CD8","CD4","CD4","CD4","CD4","CD4","TGD","NK","NK","Mo","Ma","Ma","Ma","D","D","Mt","Mt","Eo","N")
 
@@ -28,8 +95,6 @@ cbind(colnames(LM22), LM22.to.FLtypes)
 # colnames(TIL10)
 # [1] "B.cells"         "Macrophages.M1"  "Macrophages.M2"  "Monocytes"       "Neutrophils"     "NK.cells"        "T.cells.CD4"    
 # [8] "T.cells.CD8"     "Tregs"           "Dendritic.cells"
-TIL10.ct <- c("B","M1","M2","Mo","N","NK","CD4T","CD8T","Tregs","D")
-TIL10.ct.2 <- c("R","R","R","R","R","NK","CD4T","CD8T","CD4T","D")
 
 CompositeMixture <- function(mixt, composite){
   colnames(mixt) <- composite
@@ -55,6 +120,7 @@ PBMC <- t(2^newman_pbmc$data$log)[,1:20]
 ##write data for CIBERSORT web site
 # write.table(FL, file="/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/NewmanFL.txt", quote = FALSE, row.names = TRUE, sep="\t")
 # write.table(PBMC, file="/home/elmer/Dropbox/IDEAS/cibersort/MyCIBERTSORT/Debug/NewmanPBCMC.txt", quote = FALSE, row.names = TRUE, sep="\t")
+
 
 rn <- rownames(PBMC)
 
@@ -122,138 +188,107 @@ quanti_PBMC <- out.quanti <-deconvolute_quantiseq.default(mix.mat = PBMC,
 ##Since FL data contains only B , CD8 and CD$ ct, we merge and summarise such CEll types according to Newman et al Supplementary File 
 #https://www.nature.com/articles/nmeth.3337#supplementary-information
 #
-fl.composite <- c("B", "R","CD8T","CD4T","R","R","R","R","R","R","R","R")
-FL.mixture <- CompositeMixture(newman_fl$annotation$mixture[,c(3,4,2,1,5,6,7,8,9,10,11,12)],fl.composite)[1:14,]
-FL.mixture <- FL.mixture[,order(colnames(FL.mixture))]
 
-FL.cs.c <- CompositeMixture(FL.cib.site, LM22.to.FLtypes)[,order(colnames(FL.mixture))]
+FL.raw <- newman_fl$annotation$mixture[1:14,c(3,4,2,1,5,6,7,8,9,10,11,12)]
+View(FL.raw)
+colnames(FL.raw)
+LM22.original.22 <-  c("Bn"     ,"Bm"      ,"Pcs","CD8T","CD4T","CD4Tr","CD4Ta","Tfh","Tregs","gdt","Nkr","Nka","MM","M0","M1","M2","Dcr","Dca","Mcr","Mca","E","N")
+LM22.to.FLtypes <-    c("B", "B", "P",  "CD8T","CD4T","CD4T", "CD4T", "CD4T","CD4T","TGD","Nk","Nk","Mo","M","M","M", "D",  "D",  "Ma",  "Ma", "E","N")
+
+cbind(LM22.original.22,LM22.to.FLtypes)
+
+FL.ct.raw <- c("B","D","CD8T","CD4T","E","M","Ma","Mo","N","NK","P","TGD")
+FL.composite <- CompositeMixture(newman_fl$annotation$mixture[,c(3,4,2,1,5,6,7,8,9,10,11,12)],FL.ct.raw)[1:14,]
+colnames(FL.composite)
+
+FL.composite <- FL.composite[,order(colnames(FL.composite))]
+
+FL.cibersort <- CompositeMixture(FL.cib.site, LM22.to.FLtypes)
+FL.cibersort <- FL.cibersort[, order(colnames(FL.cibersort))]
+colnames(FL.cibersort)
 # FL.cib.c.ss <-CompositeMixture(data.matrix(FL.cib.ss[,2:23]), cell.types.names11)
 # cbind(colnames(FL.cib.site),colnames(FL.cib.ss[,2:23]))
-FL.r.c <- CompositeMixture(GetMixture(FL.robust,"prop"), LM22.to.FLtypes)[,order(colnames(FL.mixture))]
-FL.a.c <- CompositeMixture(GetMixture(FL.abbas,"prop"), LM22.to.FLtypes)[,order(colnames(FL.mixture))]
+FL.mixture <- CompositeMixture(GetMixture(FL.robust,"prop"), LM22.to.FLtypes)
+FL.mixture <- FL.mixture[,order(colnames(FL.mixture))]
+colnames(FL.mixture)
+FL.ABB <- CompositeMixture(GetMixture(FL.abbas,"prop"), LM22.to.FLtypes)[,order(colnames(FL.composite))]
+
 # FL.dt.c <- CompositeMixture(dt_FL$estimates, LM22.to.FLtypes)[,order(colnames(FL.mixture))]
 # FL.dt.c.ss <- CompositeMixture(dt_FLss, cell.types.names11)
 
-FL.abis <- CompositeMixture(GetMixture(abis_FL,"prop"), LM22.to.FLtypes)[,order(colnames(FL.mixture))]
-FL.quanti <- CompositeMixture(quanti_FL[,-c(1,24)], LM22.to.FLtypes)[,order(colnames(FL.mixture))]
+FL.ABI <- CompositeMixture(GetMixture(abis_FL,"prop"), LM22.to.FLtypes)[,order(colnames(FL.mixture))]
+FL.QUA <- CompositeMixture(quanti_FL[,-c(1,24)], LM22.to.FLtypes)[,order(colnames(FL.mixture))]
+
+LM22.FL <- data.frame(betahat = c(c(FL.cibersort), c(FL.ABB), c(FL.mixture),
+                                c(FL.ABI), c(FL.QUA)) ,
+                    Method = factor( rep(c("CIBERSORT", "ABBAS","MIXTURE","ABIS","QUANTISEQ"), 
+                                         each = length(as.numeric(FL.composite))), 
+                                     levels = c("ABBAS","ABIS","QUANTISEQ","CIBERSORT","MIXTURE")),
+                    CT = rep(colnames(FL.composite),each= nrow(FL.composite),times = 5),
+                    betasim = rep(as.numeric(FL.composite), times = 5))
+
+LM22.FL$difs <- LM22.FL$betahat - LM22.FL$betasim
+LM22.FL <- setbetacol(LM22.FL)
+ROCAnalisis(LM22.FL)
+#           TP  TN FP FN     Se    Sp   PPV    NPV    DO DOSeSp    ERG       F1
+# CIBERSORT 42  47 79  0 100.00 37.30 34.71 100.00 90.52  62.70 0.6270 51.53292
+# ABBAS     24  80 46 18  57.14 63.49 34.29  81.63 88.46  56.30 0.7937 42.85969
+# MIXTURE   42  92 34  0 100.00 73.02 55.26 100.00 52.25  26.98 0.2698 71.18382
+# ABIS      35  76 50  7  83.33 60.32 41.18  91.57 73.37  43.04 0.5635 55.12054
+# QUANTISEQ 17 110 16 25  40.48 87.30 51.52  81.48 79.98  60.86 0.7222 45.33760
 
 
-df.FL <- data.frame(p = c(as.numeric(FL.cs.c), as.numeric(FL.a.c), as.numeric(FL.r.c),as.numeric(FL.abis), as.numeric(FL.quanti)) ,
-                    model = factor( rep(c("CIBERSORT", "ABBAS","MIXTURE","ABIS","QUANTISEQ"), 
-                                        each = length(as.numeric(FL.cs.c))), 
-                                    levels = c("ABBAS","ABIS","CIBERSORT","MIXTURE","QUANTISEQ")),
-                    CT = rep(colnames(FL.mixture),each= nrow(FL.cs.c),times = 5),
-                    truth = rep(as.numeric(FL.mixture), times = 5))
-
-df.FL$dif <- df.FL$p - df.FL$truth 
 
 
-wilcox.test(dif~model, subset(df.FL, truth > 0 & model %in% c("CIBERSORT", "MIXTURE")), paired =TRUE, alternative = "less")
 
-# Wilcoxon signed rank test with continuity correction
-# 
-# data:  dif by model
-# V = 2408, p-value = 0.9998
-# alternative hypothesis: true location shift is less than 0
-wilcox.test(dif~model, subset(df.FL, truth > 0 & model %in% c("ABIS", "MIXTURE")), paired =TRUE, alternative = "less")
-# Wilcoxon signed rank test
-# 
-# data:  dif by model
-# V = 399, p-value = 0.2597
-# alternative hypothesis: true location shift is less than 0
-wilcox.test(dif~model, subset(df.FL, truth > 0 & model %in% c("QUANTISEQ", "MIXTURE")), paired =TRUE, alternative = "less")
+LM22.BA.FL <- BA.plot(LM22.FL,plot=T)
+LM22.Cor.FL <- Cor.plot(LM22.FL,plot=T,scale = scale_y_continuous(
+  breaks = c(-2,-1,0,1,2),
+  label = c("-2.0","-1.0", "0.0", "1.0","2.0")))
 
-wilcox.test(dif~model, subset(df.FL, truth == 0 & model %in% c("CIBERSORT", "MIXTURE")), paired =TRUE, alternative = "greater")
-# Wilcoxon signed rank test with continuity correction
-# 
-# data:  dif by model
-# V = 2408, p-value = 0.0002182
-# alternative hypothesis: true location shift is greater than 0
-wilcox.test(dif~model, subset(df.FL, truth == 0 & model %in% c("QUANTISEQ", "MIXTURE")), paired =TRUE, alternative = "greater")
+ggplot(LM22.FL,aes(x=difs, group=beta,fill=beta)) + geom_density(alpha=0.4,size = 0.2) + labs(x="error", fill = expression(beta))+facet_grid(~ Method) 
 
 
-df.FL.noceros <- subset(df.FL, truth > 0)
-df.sum.ceros <- ddply(subset(df.FL, truth == 0), .(model), summarise, 
-      mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T), max = max(dif, na.rm=T), min= min(dif, na.rm=T), q3 = quantile(dif, 0.95),
-      cor = cor(truth,p))
+
+df.FL.noceros <- subset(LM22.FL, betasim > 0)
+df.sum.ceros <- ddply(subset(LM22.FL, betasim == 0), .(Method), summarise, 
+      mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T), max = max(difs, na.rm=T), min= min(difs, na.rm=T), q3 = quantile(difs, 0.95),
+      cor = cor(betasim,betahat))
 rownames(df.sum.ceros) <- df.sum.ceros[,1]
 round(df.sum.ceros[,-1],3)
 #true coefficientes == 0
-#            mean    sd   max   min    q3 cor
-# ABBAS     0.181 0.060 0.297 0.096 0.286  NA
-# ABIS      0.086 0.044 0.193 0.029 0.157  NA
-# CIBERSORT 0.170 0.046 0.288 0.106 0.242  NA
-# MIXTURE   0.138 0.049 0.259 0.080 0.220  NA
-# QUANTISEQ 0.058 0.076 0.259 0.000 0.201  NA
+#             mean    sd   max    min    q3 cor
+# ABBAS     0.042 0.076 0.297  0.000 0.211  NA
+# ABIS      0.032 0.072 0.241 -0.061 0.178  NA
+# QUANTISEQ 0.011 0.039 0.259  0.000 0.090  NA
+# CIBERSORT 0.025 0.038 0.205  0.000 0.098  NA
+# MIXTURE   0.018 0.042 0.250  0.000 0.104  NA
 # 
-df.FL.summary <- ddply(df.FL, .(model), summarise, min= min(dif,na.rm=T),mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T), max = max(dif,na.rm = T),
-                       cor = cor(truth,p))
+df.FL.summary <- ddply(LM22.FL, .(Method), summarise, min= min(difs,na.rm=T),mean = mean(difs, na.rm=T), sd = sd(difs, na.rm=T), max = max(difs,na.rm = T),
+                       cor = cor(betasim,betahat))
 rownames(df.FL.summary) <- df.FL.summary[,1]
 round(df.FL.summary[,-1],3)
-#              min mean    sd   max   cor
-# ABBAS     -0.378    0 0.186 0.297 0.836
-# ABIS      -0.345    0 0.132 0.193 0.933
-# CIBERSORT -0.384    0 0.174 0.288 0.901
-# MIXTURE   -0.359    0 0.158 0.259 0.895
-# QUANTISEQ -0.402    0 0.148 0.460 0.927
+#             min mean    sd   max   cor
+# ABBAS     -0.427    0 0.115 0.297 0.861
+# ABIS      -0.403    0 0.106 0.241 0.879
+# QUANTISEQ -0.333    0 0.083 0.384 0.943
+# CIBERSORT -0.442    0 0.090 0.205 0.954
+# MIXTURE   -0.358    0 0.078 0.250 0.953
 # 
-df.FL.nc.summary <- ddply(df.FL.noceros, .(model), summarise, min= min(dif,na.rm=T),mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T), max = max(dif,na.rm = T),
-                       cor = cor(truth,p))
+df.FL.nc.summary <- ddply(subset(LM22.FL, betasim>0), .(Method), summarise, min= min(difs,na.rm=T),mean = mean(difs, na.rm=T), 
+                          sd = sd(difs, na.rm=T), max = max(difs,na.rm = T),
+                       cor = cor(betasim,betahat))
 rownames(df.FL.nc.summary) <- df.FL.nc.summary[,1]
 round(df.FL.nc.summary[,-1],3)
 #true coefficientes > 0
-#              min   mean    sd   max   cor
-# ABBAS     -0.378 -0.061 0.174 0.201 0.866
-# ABIS      -0.345 -0.029 0.139 0.172 0.925
-# CIBERSORT -0.384 -0.057 0.164 0.155 0.921
-# MIXTURE   -0.359 -0.046 0.155 0.205 0.902
-# QUANTISEQ -0.402 -0.019 0.162 0.460 0.936
+#             min   mean    sd   max   cor
+# ABBAS     -0.427 -0.125 0.121 0.103 0.941
+# ABIS      -0.403 -0.096 0.134 0.131 0.920
+# QUANTISEQ -0.333 -0.034 0.147 0.384 0.949
+# CIBERSORT -0.442 -0.074 0.144 0.090 0.961
+# MIXTURE   -0.358 -0.053 0.124 0.114 0.957
 # 
 
-p.FL <- ggplot(df.FL, aes(truth, dif)) + 
-  geom_point(na.rm=TRUE, aes(colour = CT, shape = CT)) +
-   geom_hline(data=df.FL.nc.summary,aes(yintercept=round(mean,3)), col = "red") +
-   geom_hline(data=df.FL.nc.summary,aes(yintercept=round(mean+2*sd,3)), col = "red", linetype = "dashed") + 
-   geom_hline(data=df.FL.nc.summary,aes(yintercept=round(mean-2*sd,3)), col = "red", linetype = "dashed") +
-  geom_smooth(data = df.FL.noceros, span = 0.5) + 
-  labs( x = "True Flow Cytometry Derived (FCD) proportions",y = "Error")  +
-  theme_bw()+  ggtitle("B")+
-  facet_wrap(~model, nrow = 1)
-
-
-##Generate the figures#####
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltmanLM22.eps")##we can manage better
- print(p.FL)
-dev.off()
-# 
-# png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.png")##we can manage better
-# print(p.FL)
-# dev.off()
-
-fl.cor<-ggplot(df.FL, aes(truth, p)) + 
-  geom_point(na.rm=TRUE, aes(colour = CT, shape = CT)) +
-  # geom_smooth(data = df.FL.noceros, span = 0.5) + 
-  labs( x = "True Flow Cytometry Derived (FCD) proportions",y = "Error")  +
-  theme_bw()+  ggtitle("B")+
-  geom_abline(intercept = 0, slope = 1)+
-  stat_smooth(method="lm", se=T, colour = "red",linetype="dashed", size=0.7)+
-  facet_wrap(~model, nrow = 1)
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_LinearLM22.eps")##we can manage better
- print(fl.cor)
-dev.off()
-
-fl.bxp <- ggplot(df.FL, aes(model, dif, colour = model)) + geom_violin(draw_quantiles = c(0.25, 0.5, 0.75), trim = FALSE) + 
-  geom_hline(yintercept = 0, colour = "red", linetype = "dotted") + labs( x = "True Flow Cytometry Derived (FCD) proportions",y = "Error")  +
-  theme_bw()+  ggtitle("LM22 - Error distribution")
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_ErrorsDistributionLM22.eps")##we can manage better
- print(fl.bxp)
-dev.off()
-  
 
 
 ##PBMC Newman et al
@@ -267,62 +302,90 @@ newman_pbmc$annotation$mixture <- newman_pbmc$annotation$mixture[colnames(LM22)]
 colnames(PBMC.cib.site)  <- str_replace_all( colnames(PBMC.cib.site), "\\." , " ")
 colnames(PBMC.cib.site)[ which(str_detect(colnames(PBMC.cib.site), "T cells regulatory"))] <- "T cells regulatory (Tregs)"
 
-cn <- colnames(data.matrix(newman_pbmc$annotation$mixture[1:20,]))
-cn[newman_pbmc$annotation$mixture[1,]==0] <- "R"
-cbind(colnames(LM22),colnames(data.matrix(newman_pbmc$annotation$mixture[1:20,])),cn)
 
-PBMC.data <- CompositeMixture(data.matrix(newman_pbmc$annotation$mixture[1:20,]), cn)
-colnames(PBMC.data)
+PBMC.composite <- data.matrix(newman_pbmc$annotation$mixture[1:20,])
+colnames(PBMC.composite)
+View(PBMC.composite)
 
 
-PBMC.cs.c <-CompositeMixture(PBMC.cib.site, cn)
-PBMC.r.c <- CompositeMixture(GetMixture(PBMC.robust,"prop"),cn)
-PBMC.a.c <- CompositeMixture(GetMixture(PBMC.abbas,"prop"),cn)
+PBMC.cibersort <-PBMC.cib.site
+PBMC.mixture <- GetMixture(PBMC.robust,"prop")
+PBMC.ABB <- GetMixture(PBMC.abbas,"prop")
 # PBMC.dt.c <- dt_PBMC$estimates[,colnames(LM22)]
-PBMC.abis <- CompositeMixture(GetMixture(abis_PBMC,"prop"),cn)
-PBMC.quanti.e <- CompositeMixture(data.matrix(quanti_PBMC[,-c(1,24)]),cn)
+PBMC.ABI <- GetMixture(abis_PBMC,"prop")
+PBMC.QUA <- data.matrix(quanti_PBMC[,-c(1,24)])
+colnames(PBMC.QUA) <- str_replace_all(colnames(PBMC.QUA),"\\."," ")
 
-df.t <- data.frame(x=rep(as.numeric(PBMC.data),5), 
-                   y = c(as.numeric(PBMC.cs.c),as.numeric(PBMC.r.c),as.numeric(PBMC.a.c),
-                         as.numeric(PBMC.abis), as.numeric(PBMC.quanti.e)),
-                   model = factor(rep(c("CIBERSORT","MIXTURE","ABBAS","ABIS","QUANTISEQ"), each=length(as.numeric(PBMC.cs.c))),
-                                  levels = c("ABBAS","ABIS","CIBERSORT","MIXTURE","QUANTISEQ")),
-                   CT = rep(colnames(PBMC.data),each = ncol(PBMC.data),times = 5))
+cbind(colnames(PBMC.composite),colnames(PBMC.cibersort),colnames(PBMC.mixture),colnames(PBMC.ABB),colnames(PBMC.ABI),colnames(PBMC.QUA))
+
+LM22.PBMC <- data.frame(betahat = c(c(PBMC.cibersort), c(PBMC.ABB), c(PBMC.mixture),
+                               c(PBMC.ABI), c(PBMC.QUA)) ,
+                   Method = factor( rep(c("CIBERSORT", "ABBAS","MIXTURE","ABIS","QUANTISEQ"), 
+                                        each = length(as.numeric(PBMC.composite))), 
+                                    levels = c("ABBAS","ABIS","QUANTISEQ","CIBERSORT","MIXTURE")),
+                   CT = rep(colnames(PBMC.composite),each= nrow(PBMC.composite),times = 5),
+                   betasim = rep(as.numeric(PBMC.composite), times = 5))
+
+LM22.PBMC$difs <- LM22.PBMC$betahat - LM22.PBMC$betasim
+LM22.PBMC <- setbetacol(LM22.PBMC)
+
+ROCAnalisis(LM22.PBMC)
+#           TP  TN  FP  FN    Se    Sp   PPV   NPV    DO DOSeSp    ERG       F1
+# CIBERSORT 148 149 111  32 82.22 57.31 57.14 82.32 65.48  46.24 0.6047 67.42323
+# ABBAS      89 164  96  91 49.44 63.08 48.11 64.31 88.80  62.61 0.8748 48.76593
+# MIXTURE   129 223  37  51 71.67 85.77 77.71 81.39 42.99  31.70 0.4256 74.56789
+# ABIS      129 141 119  51 71.67 54.23 52.02 73.44 76.84  53.83 0.7410 60.28415
+# QUANTISEQ  73 225  35 107 40.56 86.54 67.59 67.77 76.18  60.94 0.7290 50.69719
+
+
+LM22.BA.PBMC <- BA.plot(LM22.PBMC,plot=T)
+LM22.Cor.PBMC <- Cor.plot(LM22.PBMC,plot=T,scale = scale_y_continuous(
+  breaks = c(-2,-1,0,1,2),
+  label = c("-2.0","-1.0", "0.0", "1.0","2.0")))
+
+ggplot(LM22.PBMC,aes(x=difs, group=beta,fill=beta)) + geom_density(alpha=0.4,size = 0.2) + labs(x="error", fill = expression(beta))+facet_grid(~ Method) 
 
 
 
 df.t$dif <- df.t$y-df.t$x
 df.t.summary <- ddply(subset(df.t, x>0), .(model), summarise, mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T))
 library(ggplot2)
+
 df.PBMC <- df.t
+colnames(df.t) <-  c("betasim","betahat","Method","CT","dif")
+ROCAnalisis(df.t)
+#           TP TN FP  FN    Se Sp   PPV  NPV     DO DOSeSp    ERG       F1
+# CIBERSORT 148  0 20  32 82.22  0 88.10 0.00 143.03 101.57 1.1778 85.05850
+# MIXTURE   129  3 17  51 71.67 15 88.36 5.56 130.70  89.60 1.1333 79.14468
+# ABBAS      89  0 20  91 49.44  0 81.65 0.00 151.30 112.05 1.5056 61.58786
+# ABIS      129  0 20  51 71.67  0 86.58 0.00 144.85 103.94 1.2833 78.42260
+# QUANTISEQ  73  0 20 107 40.56  0 78.49 0.00 154.91 116.33 1.5944 53.48264
 df.PBMC.summary <- ddply(df.PBMC, .(model), summarise, mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T))
 df.PBMC.summary <- ddply(subset(df.PBMC, x>0), .(model), summarise, mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T))
+df.PBMC.summary
 #true coefficientes > 0
-#       model         mean         sd
+# model         mean         sd
 # 1     ABBAS -0.047056061 0.12019068
 # 2      ABIS -0.019395463 0.15119402
-# 3   DTANGLE -0.029325333 0.08241455
-# 4 CIBERSORT -0.020569976 0.09303382
-# 5   MIXTURE -0.009712779 0.09799701
-# 6   QUANTISEQ -0.032148524 0.16762496
+# 3 CIBERSORT -0.020569976 0.09303382
+# 4   MIXTURE -0.009712779 0.09799701
+# 5 QUANTISEQ -0.032148524 0.16762496
 ddply(subset(df.PBMC, x>0), .(model), summarise, cor = cor(x,y))
 # model       cor
 # 1     ABBAS 0.2739105
 # 2      ABIS 0.3576994
-# 3   DTANGLE 0.5641325
-# 4 CIBERSORT 0.5733314
-# 5   MIXTURE 0.6235775
-# 6 QUANTISEQ 0.1751661
+# 3 CIBERSORT 0.5733314
+# 4   MIXTURE 0.6235775
+# 5 QUANTISEQ 0.1751661
 # 
 ddply(subset(df.PBMC, x == 0), .(model), summarise, mean = mean(dif, na.rm=T), sd = sd(dif, na.rm=T))
 #true coefficientes == 0
-#       model        mean         sd
-# 1     ABBAS 0.032577273 0.06197797
-# 2      ABIS 0.013427628 0.06609093
-# 3   DTANGLE 0.020302154 0.02710329
-# 4 CIBERSORT 0.014240776 0.02894889
-# 5   MIXTURE 0.006724231 0.02589453
-# 6 QUANTISEQ 0.022256671 0.07770183
+# model       mean         sd
+# 1     ABBAS 0.42350455 0.06928903
+# 2      ABIS 0.17455916 0.07456590
+# 3 CIBERSORT 0.18513008 0.06023039
+# 4   MIXTURE 0.08741501 0.08035369
+# 5 QUANTISEQ 0.28933672 0.16170951
 
 wilcox.test(dif~model, subset(df.PBMC, x > 0 & model %in% c("CIBERSORT", "MIXTURE")), paired =TRUE, alternative = "less")
 # Wilcoxon signed rank test with continuity correction
@@ -350,52 +413,19 @@ col.cel.types <- c("chocolate1", "brown4", "black",
                    "grey28")
 colores <- data.frame(CT=as.character(unique(df.PBMC$CT)), Colores=col.cel.types)
 rownames(colores) <- colores[,1]
+colnames(df.PBMC)
 
-p.PBMC <-ggplot(df.PBMC, aes(x, dif)) + 
-  geom_point(na.rm=TRUE, aes(colour = CT)) + 
-  # scale_fill_manual(values  = as.character(colores[levels(df.t$CT),2]))+
-  # theme(legend.position = "none") +
-  geom_hline(data=df.PBMC.summary,aes(yintercept=round(mean,3)),col="red") +
-  geom_hline(data=df.PBMC.summary,aes(yintercept=round(mean+2*sd,3)), col = "red", linetype = "dashed") + 
-  geom_hline(data=df.PBMC.summary,aes(yintercept=round(mean-2*sd,3)), col = "red", linetype = "dashed") + 
-  geom_smooth(data = subset(df.t, df.t$x > 0), span =.7)+
-  labs( x = "True Flow Cytometry Derived (FCD) proportions",y = "Error") +
-  theme_bw()+  ggtitle("PBMC - LM22")+
-  facet_wrap(~model, nrow = 1)
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/PBMC_BlandAltmanLM22.eps")##we can manage better
- print(p.PBMC)
-dev.off()
-# 
-# png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoFL_BlandAltman.png")##we can manage better
-# print(p.FL)
-# dev.off()
-
-PBMC.cor<-ggplot(df.PBMC, aes(x, y)) + 
-  geom_point(na.rm=TRUE, aes(colour = CT, shape = CT)) +
-  # geom_smooth(data = df.FL.noceros, span = 0.5) + 
-  labs( x = "True Flow Cytometry Derived (FCD) proportions",y = "Predicted proportions")  +
-  theme_bw()+  ggtitle("PBMC - LM22 - Linear Regression")+
-  geom_abline(intercept = 0, slope = 1)+
-  stat_smooth(method="lm", se=T, colour = "red",linetype="dashed", size=0.7)+
-  facet_wrap(~model, nrow = 1)
-
-setEPS()
-postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NuevoPBMC_LinearLM22.eps")##we can manage better
- print(PBMC.cor)
-dev.off()
 
 
 ## correlation
 ddply(df.PBMC, .(model), summarise, cor = cor(x,y))
-# model       cor
-# 1     ABBAS 0.2875958
-# 2      ABIS 0.4416744
-# 3   DTANGLE 0.6688340
-# 4 CIBERSORT 0.6720866
-# 5   MIXTURE 0.7232487
-# 6 QUANTISEQ 0.2647742
+# model         cor
+# 1     ABBAS -0.08104465
+# 2      ABIS  0.27166788
+# 3 CIBERSORT  0.41641651
+# 4   MIXTURE  0.58497915
+# 5 QUANTISEQ  0.01545036
+
 ddply(subset(df.PBMC,x>0) , .(model), summarise, cor = cor(x,y))
 
 
@@ -409,22 +439,13 @@ ddply(df.FL, .(model), summarise, cor = cor(truth,p))
 # 6    QUANTI 0.9514655
 ddply(subset(df.FL, truth >0), .(model), summarise, cor = cor(truth,p))
 # model       cor
-# 1     ABBAS 0.9561770
-# 2      ABIS 0.9456332
-# 3   DTANGLE 0.9035471
-# 4 CIBERSORT 0.9403999
-# 5   MIXTURE 0.9425537
-# 6    QUANTI 0.9665101
+# 1     ABBAS 0.8356833
+# 2      ABIS 0.9326970
+# 3 CIBERSORT 0.9011704
+# 4   MIXTURE 0.8954254
+# 5 QUANTISEQ 0.9271279
 
-# png("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.png")##we can manage better
-# print(p.PBMC)
-# dev.off()
-# 
-# setEPS()
-# postscript("/home/elmer/Dropbox/IDEAS/cibersort/FiguresPaper/NewPBMC_BlandAltman.eps")##we can manage better
-# print(p.PBMC)
-# dev.off()
-
+save(LM22.FL,LM22.PBMC, file = "flow_cyotmetry_output_LM22.RData"  )
 
 
 
