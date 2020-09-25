@@ -260,7 +260,7 @@ cbind(colnames(LM22) , colnames(newman_pbmc$annotation$mixture))
 
 ##map between LM22 and TIL10
 lm22.to.til10 <- c("B cells","B cells","B cells","T cells CD8","T cells CD4","T cells CD4","T cells CD4",
-                   "T cells CD4","Tregs","T cells CD8","NK cells","NK cells","Monocytes","Macrophages M1",
+                   "T cells CD4","Tregs","T cells CD8","NK cells","NK cells","Monocytes","Macrophages M2",
                    "Macrophages M1","Macrophages M2","Dendritic cells","Dendritic cells","Other","Other","Other","Neutrophils") 
 length(lm22.to.til10)
 til10.ct.raw  <- colnames(TIL10)
