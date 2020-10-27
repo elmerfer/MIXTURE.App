@@ -12,6 +12,7 @@ The RUN_MIXTURE code was tested on Linux, Windows and Mac. On windows only one C
 
 # New! [MIXTURE in Python](https://github.com/MsMatias/MixturePy)
 # New! [MIXTURE as an R library](https://github.com/elmerfer/MIXTURE)
+# New! MIXTURE paper has been accepted in Brieffings in Bioinformatics! available soon!
 
 ## Test our Shiny app
 You may test our shiny app on the free shiny server 
