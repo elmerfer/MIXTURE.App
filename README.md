@@ -111,7 +111,8 @@ Please read [CONTRIBUTING.md](https://github.com/elmerfer/MIXTURE.App/blob/maste
 
 ## How to cite
 
-MIXTURE: an improved algorithm for immune tumor microenvironment estimation based on gene expression data. Elmer A. Fernández,  Yamil D. Mahmoud, Florencia Veigas, Darío Rocha,  Mónica Balzarini,  Hugo D. Lujan,  Gabriel A. Rabinovich,  M. Romina Girotti doi: https://doi.org/10.1101/726562
+Unveiling the immune infiltrate modulation in cancer and response to immunotherapy by MIXTURE—an enhanced deconvolution method
+Elmer A Fernández, Yamil D Mahmoud, Florencia Veigas, Darío Rocha, Matías Miranda, Joaquín Merlo, Mónica Balzarini, Hugo D Lujan, Gabriel A Rabinovich, María Romina Girotti Briefings in Bioinformatics, bbaa317, https://doi.org/10.1093/bib/bbaa317 Published: 16 December 2020
 
 ## License
 
